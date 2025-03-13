@@ -1,4 +1,5 @@
 #include "../include/cwind.h"
+#include <cmath>
 
 Cwind::Cwind()
 : rows(0) {
@@ -15,7 +16,7 @@ Cwind::Cwind(int h, int w, int r, int y, int x)
 Cwind::~Cwind(){}
 
 
-void Cwind::adjustheight(int h){
+void Cwind::AdjustHeight(int h){
 	if( h < 2 ){
 		size.y = 2;
 		return;
@@ -23,7 +24,7 @@ void Cwind::adjustheight(int h){
 	size.y = h;
 }
 
-void Cwind::adjustwidth(int w){
+void Cwind::AdjustWidth(int w){
 	if( w < 3 ){
 		size.x = 3;
 		return;
@@ -37,7 +38,7 @@ void Cwind::adjustwidth(int w){
 }
 
 
-void Cwind::set_title(const char* new_title){
+void Cwind::SetTitle(const char* new_title){
 	for( int i=0; i<256; i++ ){
 		if( new_title[i] != '\0' )
 			title[i] = new_title[i];
@@ -46,42 +47,59 @@ void Cwind::set_title(const char* new_title){
 	}
 }
 
-void Cwind::print(){
-	int count = 0;
+void Cwind::PrintBorder(){
 	for( int i=0; i<size.y; i++ ){
 		for( int j=0; j<size.x; j++ ){
-			if( (i == 0) || (i == size.y - 1) )
-				mvaddch(pos.y + i, pos.x + j, '_');
-			else if( (j == 0) || (j == size.x - 1) )
+			if( (j == 0) || (j == size.x - 1) )
 				mvaddch(pos.y + i, pos.x + j, '|');
+			else if( (i == 0) || (i == size.y - 1) )
+				mvaddch(pos.y + i, pos.x + j, '_');
 		}
 	}
 	mvaddch(pos.y, pos.x, ' ');
 	mvaddch(pos.y, size.x, ' ');
-	mvaddch(size.y, pos.x, '|');
-	mvaddch(size.y, size.x, '|');
+}
 
+void Cwind::PrintTitle(){
+	int xtitle = 0;
+	for( int i=0; i<256; i++ ){
+		if( title[i] != '\0' )
+			xtitle++;
+	}
+	xtitle = ceil(size.x/2)-ceil(xtitle/2);
 	for( int i=0; i<256; i++ ){
 		if( i >= size.x )
 			break;
-		mvprintw(pos.y+1, pos.x+i+1+count/2, "%c", title[i]);
+		mvprintw(pos.y+1, pos.x+i+xtitle, "%c", title[i]);
 	}
 }
 
-void Cwind::moveto(int y, int x){
-	pos.y = y;
-	pos.x = x;
+void Cwind::Print(){
+	PrintBorder();
+	PrintTitle();
 }
 
-void Cwind::shiftx(int x){
+void Cwind::Moveto(int y, int x){
+	pos = {y, x};
+}
+
+void Cwind::Shiftx(int x){
 	pos.x += x;
 }
 
-void Cwind::shifty(int y){
+void Cwind::Shifty(int y){
 	pos.y += y;
 }
 
-void Cwind::adjustsize(int h, int w){
-	adjustwidth(w);
-	adjustheight(h);
+void Cwind::AdjustSize(int h, int w){
+	AdjustWidth(w);
+	AdjustHeight(h);
+}
+
+int Cwind::Gety(){
+	return pos.y;
+}
+
+int Cwind::Getx(){
+	return pos.x;
 }

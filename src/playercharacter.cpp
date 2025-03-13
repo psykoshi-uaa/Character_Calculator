@@ -1,37 +1,37 @@
 #include <curses.h>
 #include "../include/playercharacter.h"
-#include "../include/tools.h"
+#include "../include/lib.h"
 
 PlayerCharacter::PlayerCharacter()
 : level(0) {
 	pos = {1, 1};
 	for( int i=0; i<NUM_OF_STATS; i++ ){
-		stats[i] = 6;
+		stats[i] = 0;
 		talent_points[i] = 0;
+		for( int j=0; j<TOTAL_TALENTS; j++ ){
+			talents_pointed[i][j] = 0;
+		}
 	}
-	for( int i=0; i<NUM_STR_TALENTS; i++ )
-		str_talents[i] = 0;
-	for( int i=0; i<NUM_DEX_TALENTS; i++ )
-		dex_talents[i] = 0;
-	for( int i=0; i<NUM_CON_TALENTS; i++ )
-		con_talents[i] = 0;
-	for( int i=0; i<NUM_INT_TALENTS; i++ )
-		int_talents[i] = 0;
-	for( int i=0; i<NUM_WIS_TALENTS; i++ )
-		wis_talents[i] = 0;
-	for( int i=0; i<NUM_CHA_TALENTS; i++ )
-		cha_talents[i] = 0;
+	SetStatWind();
 	SetTalentWind();
 }
 
 PlayerCharacter::~PlayerCharacter(){
 }
 
-void PlayerCharacter::SetTalentWind(){
-	int num_talents[] = {NUM_STR_TALENTS, NUM_DEX_TALENTS, NUM_CON_TALENTS, NUM_INT_TALENTS, NUM_WIS_TALENTS, NUM_CHA_TALENTS};
+void PlayerCharacter::SetStatWind(){
 	for( int i=0; i<NUM_OF_STATS; i++ ){
-		talent_wind[i] = new Cwind(SIZE_TALENT_MENU_H, SIZE_TALENT_MENU_W, num_talents[i], pos.y, pos.x);
-		talent_wind[i]->set_title(STAT_NAMES[i]);
+		stat_wind[i] = new Cwind(SIZE_TALENT_MENU_H, SIZE_TALENT_MENU_W, NUM_TALENTS[i], pos.y, pos.x);
+		stat_wind[i]->SetTitle(STAT_NAMES[i]);
+		stat_wind[i]->Moveto(pos.y + 10, pos.x);
+	}
+}
+
+void PlayerCharacter::SetTalentWind(){
+	for( int i=0; i<NUM_OF_STATS; i++ ){
+		talent_wind[i] = new Cwind(SIZE_TALENT_MENU_H, SIZE_TALENT_MENU_W, NUM_TALENTS[i], pos.y, pos.x);
+		talent_wind[i]->SetTitle(STAT_NAMES[i]);
+		talent_wind[i]->Moveto(pos.y + 10, pos.x);
 	}
 }
 
@@ -85,7 +85,7 @@ void PlayerCharacter::PrintStats(){
 }
 
 void PlayerCharacter::PrintTalentPoints(){
-	struct Vector temp_pos = {pos.y + 10, pos.x};
+	struct Vector temp_pos = {pos.y + 2, pos.x};
 	mvaddstr(temp_pos.y, temp_pos.x, "talent points:");
 	for( int i=0; i<NUM_OF_STATS; i++ ){
 		mvaddstr(temp_pos.y + 1 + i, temp_pos.x, STAT_NAMES[i]);
@@ -93,8 +93,25 @@ void PlayerCharacter::PrintTalentPoints(){
 	}
 }
 
+void PlayerCharacter::PrintTalent(int y, int x, int t){
+	struct Vector offset = { 3, 2 };
+	for( int i=0; i<NUM_TALENTS[t]; i++  ){
+		offset.x = 2;
+		mvprintw(y + offset.y + i, x + offset.x, "[%i]", talent_points[i]);
+		offset.x += 4;
+		for(int j=0; j<256; j++ ){
+			if( TALENT_NAMES[i][j] == '\0' ){
+				break;
+			}
+			mvprintw(y + offset.y + i, x + offset.x, "%c", TALENT_NAMES[i][j]);
+			offset.x++;
+		}
+	}
+}
+
 void PlayerCharacter::PrintTalents(){
 	Vector offset = { 0 };
 	int margin = 25;
-	talent_wind[0]->print();
+	talent_wind[0]->Print();
+	PrintTalent(talent_wind[0]->Gety(), talent_wind[0]->Getx(), 0);
 }

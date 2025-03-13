@@ -1,6 +1,6 @@
 #include <curses.h>
 #include <random>
-#include "../include/tools.h"
+#include "../include/lib.h"
 
 std::random_device rd;
 std::mt19937 RNGine(rd());
@@ -9,7 +9,7 @@ int rand_num(int min, int max){
 	return rand(RNGine);
 }
 
-void print_levelup_prompt(int y, int x){
+void PrintLevelupPrompt(int y, int x){
 	int xx = x;
 	mvprintw(y, x, "Select a stat that you would like to upgrade [1-6]");
 	for( int i=0; i<NUM_OF_STATS; i++ ){
@@ -19,22 +19,24 @@ void print_levelup_prompt(int y, int x){
 	mvprintw(y + 3, x, "press 'r' to reset and 'q' to quit");
 }
 
-char get_user_inp(){
+char GetUserInp(int argn, ...){
 	char user_inp;
-	char valid_inp[] = {
-		'1', '2', '3', '4', '5', '6', 'q', 'l', 'r', 't'
-	};
 	while(true) {
 		user_inp = getch();
-		for( int i=0; i<sizeof(valid_inp); i++ ){
-			if( user_inp == valid_inp[i] ){
+		va_list args;
+		va_start(args, argn);
+		for( int i=0; i<argn; i++ ){
+			if( user_inp == va_arg(args, int) ){
 				clear();
+				va_end(args);
 				return user_inp;
 			}
 		}
 		mvprintw(rand_num(1, 40), rand_num(1, 80), "bad input, try again");
 	}
 }
+
+const int NUM_TALENTS[] = {NUM_STR_TALENTS, NUM_DEX_TALENTS, NUM_CON_TALENTS, NUM_INT_TALENTS, NUM_WIS_TALENTS, NUM_CHA_TALENTS};
 
 const char* STAT_NAMES[] = {
 	"STR",
@@ -45,17 +47,16 @@ const char* STAT_NAMES[] = {
 	"CHA"
 };
 
-const char* STR_TALENT_NAMES[] = {
+const char* TALENT_NAMES[] = {
+//STR
 	"pugilism",
 	"headhunter",
 	"warrior",
 	"mule",
 	"way of frog",
 	"way of ram",
-	"nutcracker"
-};
-
-const char* DEX_TALENT_NAMES[] = {
+	"nutcracker",
+//DEX
 	"mist",
 	"exploiter",
 	"accuracy m.",
@@ -65,20 +66,16 @@ const char* DEX_TALENT_NAMES[] = {
 	"sealegs",
 	"featherfall",
 	"ballistics",
-	"avoidance"
-};
-
-const char* CON_TALENT_NAMES[] = {
+	"avoidance",
+//CON
 	"hearty",
 	"healthy",
 	"aegis",
 	"mouth breather",
 	"drunkard",
 	"poise",
-	"castle"
-};
-
-const char* INT_TALENT_NAMES[] = {
+	"castle",
+//INT
 	"empty mind",
 	"magician",
 	"accuracy s.",
@@ -86,20 +83,16 @@ const char* INT_TALENT_NAMES[] = {
 	"ice maiden",
 	"necromancer",
 	"the faithful",
-	"melting man"
-};
-
-const char* WIS_TALENT_NAMES[] = {
+	"melting man",
+//WIS
 	"strong mind",
 	"watch your step",
 	"show yourself!",
 	"the doctor",
 	"druidic",
 	"magic mirroe",
-	"writer's block"
-};
-
-const char* CHA_TALENT_NAMES[] = {
+	"writer's block",
+//CHA
 	"knock knock,",
 	"who's there?",
 	"charge!",
@@ -109,3 +102,5 @@ const char* CHA_TALENT_NAMES[] = {
 	"distract",
 	"bully"
 };
+
+

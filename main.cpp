@@ -3,10 +3,10 @@
 #include <random>
 #include <cmath>
 #include "include/playercharacter.h"
-#include "include/tools.h"
+#include "include/lib.h"
 #include "include/cwind.h"
 
-void print_levelup_prompt(int y, int x);
+void StateMachine(PlayerCharacter& player, CurState& curstate, char& userInp);
 
 int initialize(){
 	initscr(); cbreak(); noecho();
@@ -20,36 +20,56 @@ int deinitialize(){
 }
 
 int main(){
+	enum CurState curstate = STATE_STATS;
 	int exit_code = initialize();
-	char user_inp;
+	char userInp = '\0';
 
-	while( user_inp != 'q' ){
+	while( curstate != STATE_EXIT ){
 		clear();
 		PlayerCharacter player;
+		curstate = STATE_STATS;
 		
 		while( true ){
-			player.IncreaseStat(int(user_inp) - int('0') - 1);
-
-			if( user_inp == 'l' ){
-				player.Levelup();
-			} else if( user_inp == 't' ){
-				clear();
-				refresh();
-				while( true ){
-					player.PrintTalents();
-					user_inp = get_user_inp();
-				}
-			}
-
-			player.PrintCurrentLevel();
-			player.PrintStats();
-			player.PrintTalentPoints();
-			print_levelup_prompt(20, 1);
-
-			user_inp = get_user_inp();
-			if( user_inp == 'q' || user_inp == 'r' )
+			StateMachine(player, curstate, userInp);
+			if( (curstate == STATE_RESET) || (curstate == STATE_EXIT) )
 				break;
 		}
+		if( curstate == STATE_EXIT )
+			break;
 	}
 	return deinitialize();
+}
+
+void StateMachine(PlayerCharacter& player, CurState& curstate, char& userInp){
+	switch( curstate ){
+	case STATE_STATS:
+		player.IncreaseStat(int(userInp) - int('0') - 1);
+		player.PrintCurrentLevel();
+		player.PrintStats();
+		PrintLevelupPrompt(20, 1);
+		userInp = GetUserInp(10, '1', '2', '3', '4', '5', '6', 'q', 'l', 'R', 't');
+		if( userInp == 'q' )
+			curstate = STATE_EXIT;
+		else if( userInp == 'r' )
+			curstate = STATE_RESET;
+		else if( userInp == 'l' )
+			player.Levelup();
+		else if( userInp == 't' ){
+			clear();
+			refresh();
+			curstate = STATE_TALENTS;
+		}
+
+		break;
+	case STATE_TALENTS:
+		player.PrintTalents();
+		player.PrintCurrentLevel();
+		player.PrintTalentPoints();
+		userInp = GetUserInp(2, 'b', 'q');
+		if( userInp == 'b' )
+			curstate = STATE_STATS;
+		break;
+	default:
+		break;
+	}
 }
