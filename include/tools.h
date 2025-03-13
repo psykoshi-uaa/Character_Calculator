@@ -7,7 +7,10 @@
 #define NUM_WIS_TALENTS 7
 #define NUM_CHA_TALENTS 8
 
-extern const char* STAT_NAMES[6];
+#define SIZE_TALENT_MENU_H 10
+#define SIZE_TALENT_MENU_W 15
+
+extern const char* STAT_NAMES[NUM_OF_STATS];
 
 int rand_num(int min, int max);
 char get_user_inp();

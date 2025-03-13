@@ -21,17 +21,26 @@ PlayerCharacter::PlayerCharacter()
 		wis_talents[i] = 0;
 	for( int i=0; i<NUM_CHA_TALENTS; i++ )
 		cha_talents[i] = 0;
+	SetTalentWind();
 }
 
 PlayerCharacter::~PlayerCharacter(){
 }
 
-void PlayerCharacter::levelup(){
-	generate_talent_points();
+void PlayerCharacter::SetTalentWind(){
+	int num_talents[] = {NUM_STR_TALENTS, NUM_DEX_TALENTS, NUM_CON_TALENTS, NUM_INT_TALENTS, NUM_WIS_TALENTS, NUM_CHA_TALENTS};
+	for( int i=0; i<NUM_OF_STATS; i++ ){
+		talent_wind[i] = new Cwind(SIZE_TALENT_MENU_H, SIZE_TALENT_MENU_W, num_talents[i], pos.y, pos.x);
+		talent_wind[i]->set_title(STAT_NAMES[i]);
+	}
+}
+
+void PlayerCharacter::Levelup(){
+	GenerateTalentPoints();
 	level += 1;
 }
 
-void PlayerCharacter::generate_talent_points(){
+void PlayerCharacter::GenerateTalentPoints(){
 	for( int i=0; i<NUM_OF_STATS; i++ ){
 		int dice_thrown = 0;
 		if( stats[i] > 18 ){
@@ -58,11 +67,15 @@ void PlayerCharacter::IncreaseStat(int stat){
 	stats[stat] += 1;
 }
 
-void PlayerCharacter::print_current_level(){
+void PlayerCharacter::SetPosition(int y, int x){
+	pos = {y, x};
+}
+
+void PlayerCharacter::PrintCurrentLevel(){
 	mvprintw(pos.y, pos.x + 4, "LEVEL: %i", level);
 }
 
-void PlayerCharacter::print_stats(){
+void PlayerCharacter::PrintStats(){
 	struct Vector temp_pos = {pos.y + 2, pos.x};
 	mvaddstr(temp_pos.y, temp_pos.x, "stats:");
 	for( int i=0; i<NUM_OF_STATS; i++ ){
@@ -71,7 +84,7 @@ void PlayerCharacter::print_stats(){
 	}
 }
 
-void PlayerCharacter::print_talent_points(){
+void PlayerCharacter::PrintTalentPoints(){
 	struct Vector temp_pos = {pos.y + 10, pos.x};
 	mvaddstr(temp_pos.y, temp_pos.x, "talent points:");
 	for( int i=0; i<NUM_OF_STATS; i++ ){
@@ -80,24 +93,8 @@ void PlayerCharacter::print_talent_points(){
 	}
 }
 
-void PlayerCharacter::print_talents(int y, int x){
+void PlayerCharacter::PrintTalents(){
 	Vector offset = { 0 };
 	int margin = 25;
-	for( int i=0; i<NUM_STR_TALENTS; i++ )
-		mvprintw(y + i, offset.x, "[+%i] %s", str_talents[i], STR_TALENT_NAMES[i]);
-	offset.x += margin;
-	for( int i=0; i<NUM_DEX_TALENTS; i++ )
-		mvprintw(y + i + offset.y, offset.x, "[+%i] %s", dex_talents[i], DEX_TALENT_NAMES[i]);
-	offset.x += margin;
-	for( int i=0; i<NUM_CON_TALENTS; i++ )
-		mvprintw(y + i + offset.y, offset.x, "[+%i] %s", con_talents[i], CON_TALENT_NAMES[i]);
-	offset.x += margin;
-	for( int i=0; i<NUM_INT_TALENTS; i++ )
-		mvprintw(y + i + offset.y, offset.x, "[+%i] %s", int_talents[i], INT_TALENT_NAMES[i]);
-	offset.x += margin;
-	for( int i=0; i<NUM_WIS_TALENTS; i++ )
-		mvprintw(y + i + offset.y, offset.x, "[+%i] %s", wis_talents[i], WIS_TALENT_NAMES[i]);
-	offset.x += margin;
-	for( int i=0; i<NUM_CHA_TALENTS; i++ )
-		mvprintw(y + i + offset.y, offset.x, "[+%i] %s", cha_talents[i], CHA_TALENT_NAMES[i]);
+	talent_wind[0]->print();
 }

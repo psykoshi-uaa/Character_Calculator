@@ -9,15 +9,26 @@ int rand_num(int min, int max){
 	return rand(RNGine);
 }
 
+void print_levelup_prompt(int y, int x){
+	int xx = x;
+	mvprintw(y, x, "Select a stat that you would like to upgrade [1-6]");
+	for( int i=0; i<NUM_OF_STATS; i++ ){
+		mvprintw(y+1, xx, "%i = %s", i + 1, STAT_NAMES[i]);
+		xx += 9;
+	}
+	mvprintw(y + 3, x, "press 'r' to reset and 'q' to quit");
+}
+
 char get_user_inp(){
 	char user_inp;
 	char valid_inp[] = {
-		'1', '2', '3', '4', '5', '6', 'q', 'l', 'r'
+		'1', '2', '3', '4', '5', '6', 'q', 'l', 'r', 't'
 	};
 	while(true) {
 		user_inp = getch();
 		for( int i=0; i<sizeof(valid_inp); i++ ){
 			if( user_inp == valid_inp[i] ){
+				clear();
 				return user_inp;
 			}
 		}

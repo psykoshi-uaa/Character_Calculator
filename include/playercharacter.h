@@ -1,6 +1,7 @@
 #pragma once
 #include <curses.h>
 #include "tools.h"
+#include "cwind.h"
 
 extern const char* STAT_NAMES[6];
 extern const char* STR_TALENT_NAMES[NUM_STR_TALENTS];
@@ -22,15 +23,18 @@ private:
 	int int_talents[NUM_INT_TALENTS];
 	int wis_talents[NUM_WIS_TALENTS];
 	int cha_talents[NUM_CHA_TALENTS];
+	Cwind* talent_wind[NUM_OF_STATS];
+	void SetTalentWind();
 
 public:
 	PlayerCharacter();
 	~PlayerCharacter();
-	void levelup();
-	void generate_talent_points();
+	void Levelup();
+	void GenerateTalentPoints();
 	void IncreaseStat(int stat);
-	void print_current_level();
-	void print_stats();
-	void print_talent_points();
-	void print_talents(int y, int x);
+	void SetPosition(int y, int x);
+	void PrintCurrentLevel();
+	void PrintStats();
+	void PrintTalentPoints();
+	void PrintTalents();
 };
