@@ -47,12 +47,12 @@ void StateMachine(PlayerCharacter& player, CurState& curstate, char& userInp){
 		player.PrintCurrentLevel();
 		player.PrintStats();
 		PrintLevelupPrompt(20, 1);
-		userInp = GetUserInp(10, '1', '2', '3', '4', '5', '6', 'q', 'l', 'R', 't');
-		if( userInp == 'q' )
+		userInp = GetUserInp(10, '1', '2', '3', '4', '5', '6', 'Q', 'L', 'R', 't');
+		if( userInp == 'Q' )
 			curstate = STATE_EXIT;
-		else if( userInp == 'r' )
+		else if( userInp == 'R' )
 			curstate = STATE_RESET;
-		else if( userInp == 'l' )
+		else if( userInp == 'L' )
 			player.Levelup();
 		else if( userInp == 't' ){
 			clear();
