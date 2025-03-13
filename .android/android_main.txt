@@ -157,16 +157,6 @@ int rand_num(int min, int max){
 	return rand(RNGine);
 }
 
-void PrintLevelupPrompt(int y, int x){
-	int xx = x;
-	mvprintw(y, x, "Select a stat that you would like to upgrade [1-6]");
-	for( int i=0; i<NUM_OF_STATS; i++ ){
-		mvprintw(y+1, xx, "%i = %s", i + 1, STAT_NAMES[i]);
-		xx += 9;
-	}
-	mvprintw(y + 3, x, "press 'r' to reset and 'q' to quit");
-}
-
 char GetUserInp(int argn, ...){
 	char user_inp;
 	while(true) {
@@ -470,4 +460,14 @@ void PlayerCharacter::PrintTalents(){
 	int margin = 25;
 	talent_wind[0]->Print();
 	PrintTalent(talent_wind[0]->Gety(), talent_wind[0]->Getx(), 0);
+}
+
+void PrintLevelupPrompt(int y, int x){
+	int xx = x;
+	mvprintw(y, x, "Select a stat that you would like to upgrade [1-6]");
+	for( int i=0; i<NUM_OF_STATS; i++ ){
+		mvprintw(y+1, xx, "%i = %s", i + 1, STAT_NAMES[i]);
+		xx += 9;
+	}
+	mvprintw(y + 3, x, "press 'r' to reset and 'q' to quit");
 }
