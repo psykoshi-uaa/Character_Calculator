@@ -50,18 +50,11 @@ void StateMachine(TalentTree tt, Cwin& cwin, PlayerCharacter& player, AppState& 
 	switch( curstate ){
 	case STATE_STATS:
 		cwin.Print();
-		player.IncreaseStat(int(userInp) - int('0') - 1);
+		//player.IncreaseStat(int(userInp) - int('0') - 1);
 		player.PrintCurrentLevel();
-<<<<<<< HEAD
-		player.PrintStats();
-		PrintLevelupPrompt(20, 1);
-		userInp = GetUserInp(10, '1', '2', '3', '4', '5', '6', 'Q', 'L', 'R', 't');
-		if( userInp == 'Q' )
-=======
 		PrintLevelupPrompt(20, 3);
 		userInp = GetUserInp(10, '1', '2', '3', '4', '5', '6', 'q', 'L', 'R', 't');
 		if( userInp == 'q' )
->>>>>>> d70a765 (many changes later)
 			curstate = STATE_EXIT;
 		else if( userInp == 'R' )
 			curstate = STATE_RESET;
