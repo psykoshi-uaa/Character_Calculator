@@ -1,24 +1,22 @@
 #pragma once
 #include <curses.h>
+#include <string>
 #include "lib.h"
-#include "cwind.h"
+#include "cwin.h"
+#include "pos.h"
 
-extern const int NUM_TALENTS[NUM_OF_STATS];
-extern const char* STAT_NAMES[NUM_OF_STATS];
-extern const char* TALENT_NAMES[TOTAL_TALENTS];
+extern const std::string STAT_NAMES[NUM_STATS];
+extern const std::string TALENT_NAMES[NUM_TALENTS];
 
 class PlayerCharacter {
 private:
-	struct Vector pos;
-	int stats[NUM_OF_STATS];
-	int talent_points[NUM_OF_STATS];
-	int talents_pointed[NUM_OF_STATS][TOTAL_TALENTS];
+	struct Pos pos;
+	int stats[NUM_STATS];
+	int talent_points[NUM_STATS];
+	int talents_pointed[NUM_STATS][NUM_TALENTS];
 	int level;
-	const char* talents[NUM_OF_STATS][10];
-	Cwind* stat_wind[NUM_OF_STATS];
-	Cwind* talent_wind[NUM_OF_STATS];
-	void SetStatWind();
-	void SetTalentWind();
+	Cwin* stat_win[NUM_STATS];
+	Cwin* talent_win[NUM_STATS];
 
 public:
 	PlayerCharacter();
@@ -26,10 +24,6 @@ public:
 	void Levelup();
 	void GenerateTalentPoints();
 	void IncreaseStat(int stat);
-	void SetPosition(int y, int x);
+	void SetPos(struct Pos new_pos);
 	void PrintCurrentLevel();
-	void PrintStats();
-	void PrintTalentPoints();
-	void PrintTalent(int y, int x, int t);
-	void PrintTalents(int t);
 };

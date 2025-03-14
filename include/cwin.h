@@ -1,25 +1,21 @@
 #pragma once
 #include <curses.h>
-#include "lib.h"
+#include <string>
+#include "pos.h"
 
 #define MAX_WIND_HEIGHT 100
 
-class Cwind {
+class Cwin {
 private:
-	struct Vector pos;
-	struct Vector size;
-	int rows;
-	char title[256];
+	struct Pos pos;
+	struct Pos size;
 	void AdjustHeight(int h);
 	void AdjustWidth(int w);
 	
 public:
-	Cwind();
-	Cwind(int h, int w, int r, int y, int x);
-	~Cwind();
-	void SetTitle(const char* new_title);
-	void PrintBorder();
-	void PrintTitle();
+	Cwin();
+	Cwin(int h, int w, int y, int x);
+	~Cwin();
 	void Print();
 	void Moveto(int y, int x);
 	void Shiftx(int x=0);

@@ -1,22 +1,25 @@
 #include <curses.h>
 #include <random>
+#include <string>
 #include "../include/lib.h"
+
+const int NUM_TALENTS_IN_STAT[] = {NUM_STR_TALENTS, NUM_DEX_TALENTS, NUM_CON_TALENTS, NUM_INT_TALENTS, NUM_WIS_TALENTS, NUM_CHA_TALENTS};
+
+const std::string STAT_NAMES[] = {
+	"STR",
+	"DEX",
+	"CON",
+	"INT",
+	"WIS",
+	"CHA",
+	"LCK"
+};
 
 std::random_device rd;
 std::mt19937 RNGine(rd());
 int rand_num(int min, int max){
 	std::uniform_int_distribution<int> rand(min, max);
 	return rand(RNGine);
-}
-
-void PrintLevelupPrompt(int y, int x){
-	int xx = x;
-	mvprintw(y, x, "Select a stat that you would like to upgrade [1-6]");
-	for( int i=0; i<NUM_OF_STATS; i++ ){
-		mvprintw(y+1, xx, "%i = %s", i + 1, STAT_NAMES[i]);
-		xx += 9;
-	}
-	mvprintw(y + 3, x, "press 'r' to reset and 'q' to quit");
 }
 
 char GetUserInp(int argn, ...){
@@ -36,71 +39,61 @@ char GetUserInp(int argn, ...){
 	}
 }
 
-const int NUM_TALENTS[] = {NUM_STR_TALENTS, NUM_DEX_TALENTS, NUM_CON_TALENTS, NUM_INT_TALENTS, NUM_WIS_TALENTS, NUM_CHA_TALENTS};
+Talent::Talent()
+: stat(0), name("N/A"), desc("N/A") {}
 
-const char* STAT_NAMES[] = {
-	"STR",
-	"DEX",
-	"CON",
-	"INT",
-	"WIS",
-	"CHA"
-};
+Talent::Talent(int s, std::string n, std::string d)
+: stat(s), name(n), desc(d) {}
 
-const char* TALENT_NAMES[] = {
-//STR
-	"pugilism",
-	"headhunter",
-	"warrior",
-	"mule",
-	"way of frog",
-	"way of ram",
-	"nutcracker",
-//DEX
-	"mist",
-	"exploiter",
-	"accuracy m.",
-	"accuracy r.",
-	"accuracy t.",
-	"speedster",
-	"sealegs",
-	"featherfall",
-	"ballistics",
-	"avoidance",
-//CON
-	"hearty",
-	"healthy",
-	"aegis",
-	"mouth breather",
-	"drunkard",
-	"poise",
-	"castle",
-//INT
-	"empty mind",
-	"magician",
-	"accuracy s.",
-	"firebender",
-	"ice maiden",
-	"necromancer",
-	"the faithful",
-	"melting man",
-//WIS
-	"strong mind",
-	"watch your step",
-	"show yourself!",
-	"the doctor",
-	"druidic",
-	"magic mirroe",
-	"writer's block",
-//CHA
-	"knock knock,",
-	"who's there?",
-	"charge!",
-	"attack!",
-	"hold the line!",
-	"presence",
-	"distract",
-	"bully"
-};
+Talent::~Talent(){}
 
+Talent* Talent::GetNext(){
+	return next;
+}
 
+void Talent::SetNext(Talent* new_next){
+	next = new_next;
+}
+
+SubTalentTree::SubTalentTree()
+: stat(0){
+	head = new Talent;
+}
+
+SubTalentTree::SubTalentTree(int s)
+: stat(s){}
+
+SubTalentTree::~SubTalentTree() {}
+
+void SubTalentTree::AddTalent(std::string name, std::string desc) {
+	Talent* temp = head;
+	if( head == nullptr ){
+		head = new Talent(stat, name, desc);
+		return;
+	}
+
+	while( temp->GetNext() != nullptr ){
+		temp = temp->GetNext();
+	}
+	temp->SetNext(new Talent(stat, name, desc));
+}
+
+void SubTalentTree::PrintTalents(){
+	
+}
+
+TalentTree::TalentTree() {
+	for( int i=0; i<NUM_STATS; i++ ){
+		stt[i] = new SubTalentTree(0);
+	}
+}
+
+TalentTree::~TalentTree() {
+	for( int i=0; i<NUM_STATS; i++ ){
+		//delete stt[i];
+	}
+}
+
+void TalentTree::AddTalent(int stat, std::string name, std::string desc){
+	stt[stat]->AddTalent(name, desc);
+}
