@@ -109,9 +109,10 @@ void PlayerCharacter::PrintTalent(int y, int x, int t){
 	}
 }
 
-void PlayerCharacter::PrintTalents(){
+void PlayerCharacter::PrintTalents(int t){
 	Vector offset = { 0 };
 	int margin = 25;
-	talent_wind[0]->Print();
-	PrintTalent(talent_wind[0]->Gety(), talent_wind[0]->Getx(), 0);
+	talent_wind[t]->Moveto(talent_wind[i]->Gety(), talent_wind[i]->Getx() + t + 2);
+	talent_wind[t]->Print();
+	PrintTalent(talent_wind[t]->Gety(), talent_wind[t]->Getx(), 0);
 }

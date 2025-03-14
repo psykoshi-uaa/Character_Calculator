@@ -31,5 +31,5 @@ public:
 	void PrintStats();
 	void PrintTalentPoints();
 	void PrintTalent(int y, int x, int t);
-	void PrintTalents();
+	void PrintTalents(int t);
 };
