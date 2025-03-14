@@ -4,6 +4,21 @@
 #include <cmath>
 #include <string>
 
+#define NUM_STATS 7
+#define NUM_TALENTS 48
+#define NUM_STR_TALENTS 7
+#define NUM_DEX_TALENTS 10
+#define NUM_CON_TALENTS 7
+#define NUM_INT_TALENTS 8
+#define NUM_WIS_TALENTS 7
+#define NUM_CHA_TALENTS 8
+#define NUM_LCK_TALENTS 1
+
+#define SIZE_TALENT_MENU_H 16
+#define SIZE_TALENT_MENU_W 24
+#define SIZE_SIZE_MENU_H 9
+#define SIZE_SIZE_MENU_W 9
+
 struct Pos {
 	int y;
 	int x;
