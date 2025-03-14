@@ -24,28 +24,6 @@ struct Pos {
 	int x;
 };
 
-#define MAX_WIND_HEIGHT 100
-
-class Cwin {
-private:
-	struct Pos pos;
-	struct Pos size;
-	void AdjustHeight(int h);
-	void AdjustWidth(int w);
-	
-public:
-	Cwin();
-	Cwin(int h, int w, int y, int x);
-	~Cwin();
-	void Print();
-	void Moveto(int y, int x);
-	void Shiftx(int x=0);
-	void Shifty(int y=0);
-	void AdjustSize(int h, int x);
-	int Gety();
-	int Getx();
-};
-
 int rand_num(int min, int max);
 char GetUserInp(int argn, ...);
 void PrintLevelupPrompt(int y, int x);
@@ -90,6 +68,28 @@ public:
 	//void PrintTalentList(int stat);
 };
 
+#define MAX_WIND_HEIGHT 100
+
+class Cwin {
+private:
+	struct Pos pos;
+	struct Pos size;
+	void AdjustHeight(int h);
+	void AdjustWidth(int w);
+	
+public:
+	Cwin();
+	Cwin(int h, int w, int y, int x);
+	~Cwin();
+	void Print();
+	void Moveto(int y, int x);
+	void Shiftx(int x=0);
+	void Shifty(int y=0);
+	void AdjustSize(int h, int x);
+	int Gety();
+	int Getx();
+};
+
 class PlayerCharacter {
 private:
 	struct Pos pos;
@@ -109,80 +109,6 @@ public:
 	void SetPos(struct Pos new_pos);
 	void PrintCurrentLevel();
 };
-
-Cwin::Cwin() {
-	pos = { 0 };
-	size = { 5, 5 };
-}
-
-Cwin::Cwin(int h, int w, int y, int x) {
-	pos = { y, x };
-	size = { h, w };
-}
-
-Cwin::~Cwin(){}
-
-
-void Cwin::AdjustHeight(int h) {
-	if( h < 2 ){
-		size.y = 2;
-		return;
-	}
-	size.y = h;
-}
-
-void Cwin::AdjustWidth(int w) {
-	if( w < 3 ){
-		size.x = 3;
-		return;
-	} else {
-		if( size.x % 2 == 0 ){
-			size.x = w + 1;
-			return;
-		}
-	}
-	size.x = w;
-}
-
-void Cwin::Print() {
-	for( int i=0; i<size.y; i++ ){
-		for( int j=0; j<size.x; j++ ){
-			if( (j == 0) || (j == size.x - 1) )
-				mvaddch(pos.y + i, pos.x + j, '|');
-			else if( (i == 0) || (i == size.y - 1) )
-				mvaddch(pos.y + i, pos.x + j, '_');
-			else
-				mvaddch(pos.y + i, pos.x + j, ' ');
-		}
-	}
-	mvaddch(pos.y, pos.x, ' ');
-	mvaddch(pos.y, size.x, ' ');
-}
-
-void Cwin::Moveto(int y, int x) {
-	pos = {y, x};
-}
-
-void Cwin::Shiftx(int x) {
-	pos.x += x;
-}
-
-void Cwin::Shifty(int y) {
-	pos.y += y;
-}
-
-void Cwin::AdjustSize(int h, int w) {
-	AdjustWidth(w);
-	AdjustHeight(h);
-}
-
-int Cwin::Gety() {
-	return pos.y;
-}
-
-int Cwin::Getx() {
-	return pos.x;
-}
 
 const int NUM_TALENTS_IN_STAT[] = {NUM_STR_TALENTS, NUM_DEX_TALENTS, NUM_CON_TALENTS, NUM_INT_TALENTS, NUM_WIS_TALENTS, NUM_CHA_TALENTS};
 
@@ -279,6 +205,80 @@ void TalentTree::AddTalent(int stat, std::string name, std::string desc){
 	stt[stat]->AddTalent(name, desc);
 }
 
+Cwin::Cwin() {
+	pos = { 0 };
+	size = { 5, 5 };
+}
+
+Cwin::Cwin(int h, int w, int y, int x) {
+	pos = { y, x };
+	size = { h, w };
+}
+
+Cwin::~Cwin(){}
+
+
+void Cwin::AdjustHeight(int h) {
+	if( h < 2 ){
+		size.y = 2;
+		return;
+	}
+	size.y = h;
+}
+
+void Cwin::AdjustWidth(int w) {
+	if( w < 3 ){
+		size.x = 3;
+		return;
+	} else {
+		if( size.x % 2 == 0 ){
+			size.x = w + 1;
+			return;
+		}
+	}
+	size.x = w;
+}
+
+void Cwin::Print() {
+	for( int i=0; i<size.y; i++ ){
+		for( int j=0; j<size.x; j++ ){
+			if( (j == 0) || (j == size.x - 1) )
+				mvaddch(pos.y + i, pos.x + j, '|');
+			else if( (i == 0) || (i == size.y - 1) )
+				mvaddch(pos.y + i, pos.x + j, '_');
+			else
+				mvaddch(pos.y + i, pos.x + j, ' ');
+		}
+	}
+	mvaddch(pos.y, pos.x, ' ');
+	mvaddch(pos.y, size.x, ' ');
+}
+
+void Cwin::Moveto(int y, int x) {
+	pos = {y, x};
+}
+
+void Cwin::Shiftx(int x) {
+	pos.x += x;
+}
+
+void Cwin::Shifty(int y) {
+	pos.y += y;
+}
+
+void Cwin::AdjustSize(int h, int w) {
+	AdjustWidth(w);
+	AdjustHeight(h);
+}
+
+int Cwin::Gety() {
+	return pos.y;
+}
+
+int Cwin::Getx() {
+	return pos.x;
+}
+
 PlayerCharacter::PlayerCharacter()
 : level(0) {
 	pos = {1, 1};
@@ -330,6 +330,7 @@ void PlayerCharacter::SetPos(struct Pos new_pos){
 void PlayerCharacter::PrintCurrentLevel(){
 	mvprintw(pos.y, pos.x + 4, "LEVEL: %i", level);
 }
+
 
 void StateMachine(TalentTree tt, Cwin& cwin, PlayerCharacter& player, AppState& curstate, int& statselected, char& userInp);
 void InitTalents(TalentTree& tt);
