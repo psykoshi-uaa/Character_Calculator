@@ -2,47 +2,26 @@
 #include <stdio.h>
 #include <random>
 #include <cmath>
+#include <string>
 
-#define NUM_OF_STATS 6
-#define NUM_STR_TALENTS 7
-#define NUM_DEX_TALENTS 10
-#define NUM_CON_TALENTS 7
-#define NUM_INT_TALENTS 8
-#define NUM_WIS_TALENTS 7
-#define NUM_CHA_TALENTS 8
-#define TOTAL_TALENTS 47
-
-#define SIZE_TALENT_MENU_H 16
-#define SIZE_TALENT_MENU_W 24
-#define MAX_WIND_HEIGHT 100
-
-int rand_num(int min, int max);
-char GetUserInp(int argn, ...);
-void PrintLevelupPrompt(int y, int x);
-
-enum CurState { STATE_STATS, STATE_TALENTS, STATE_RESET, STATE_EXIT };
-
-struct Vector {
+struct Pos {
 	int y;
 	int x;
 };
 
-class Cwind {
+#define MAX_WIND_HEIGHT 100
+
+class Cwin {
 private:
-	struct Vector pos;
-	struct Vector size;
-	int rows;
-	char title[256];
+	struct Pos pos;
+	struct Pos size;
 	void AdjustHeight(int h);
 	void AdjustWidth(int w);
 	
 public:
-	Cwind();
-	Cwind(int h, int w, int r, int y, int x);
-	~Cwind();
-	void SetTitle(const char* new_title);
-	void PrintBorder();
-	void PrintTitle();
+	Cwin();
+	Cwin(int h, int w, int y, int x);
+	~Cwin();
 	void Print();
 	void Moveto(int y, int x);
 	void Shiftx(int x=0);
@@ -52,333 +31,63 @@ public:
 	int Getx();
 };
 
-class PlayerCharacter {
-private:
-	struct Vector pos;
-	int stats[NUM_OF_STATS];
-	int talent_points[NUM_OF_STATS];
-	int talents_pointed[NUM_OF_STATS][TOTAL_TALENTS];
-	int level;
-	const char* talents[NUM_OF_STATS][10];
-	Cwind* stat_wind[NUM_OF_STATS];
-	Cwind* talent_wind[NUM_OF_STATS];
-	void SetStatWind();
-	void SetTalentWind();
+extern const int NUM_TALENTS_IN_STAT[NUM_TALENTS];
+extern const std::string STAT_NAMES[NUM_STATS];
 
+int rand_num(int min, int max);
+char GetUserInp(int argn, ...);
+void PrintLevelupPrompt(int y, int x);
+
+enum AppState { STATE_STATS, STATE_TALENTS, STATE_RESET, STATE_EXIT };
+enum StatState { STATE_STR, STATE_DEX, STATE_CON, STATE_INT, STATE_WIS, STATE_CHA, STATE_LCK };
+
+class Talent {
+private:
+	int stat;
+	std::string name;
+	std::string desc;
+	Talent* next;
 public:
-	PlayerCharacter();
-	~PlayerCharacter();
-	void Levelup();
-	void GenerateTalentPoints();
-	void IncreaseStat(int stat);
-	void SetPosition(int y, int x);
-	void PrintCurrentLevel();
-	void PrintStats();
-	void PrintTalentPoints();
-	void PrintTalent(int y, int x, int t);
+	Talent();
+	Talent(int s, std::string n, std::string d);
+	~Talent();
+	Talent* GetNext();
+	void SetNext(Talent* new_next);
+};
+
+class SubTalentTree {
+private:
+	int stat;
+	Talent* head;
+public:
+	SubTalentTree();
+	SubTalentTree(int s);
+	~SubTalentTree();
+	void AddTalent(std::string name, std::string desc);
 	void PrintTalents();
 };
 
-std::random_device rd;
-std::mt19937 RNGine(rd());
-
-void StateMachine(PlayerCharacter& player, CurState& curstate, char& userInp);
-
-int initialize(){
-	initscr(); cbreak(); noecho();
-	keypad(stdscr, TRUE);
-	return 0;
-}
-
-int deinitialize(){
-	endwin();
-	return 0;
-}
-
-int main(){
-	enum CurState curstate = STATE_STATS;
-	int exit_code = initialize();
-	char userInp = '\0';
-
-	while( curstate != STATE_EXIT ){
-		clear();
-		PlayerCharacter player;
-		curstate = STATE_STATS;
-		
-		while( true ){
-			StateMachine(player, curstate, userInp);
-			if( (curstate == STATE_RESET) || (curstate == STATE_EXIT) )
-				break;
-		}
-		if( curstate == STATE_EXIT )
-			break;
-	}
-	return deinitialize();
-}
-
-void StateMachine(PlayerCharacter& player, CurState& curstate, char& userInp){
-	switch( curstate ){
-	case STATE_STATS:
-		player.IncreaseStat(int(userInp) - int('0') - 1);
-		player.PrintCurrentLevel();
-		player.PrintStats();
-		PrintLevelupPrompt(20, 1);
-		userInp = GetUserInp(10, '1', '2', '3', '4', '5', '6', 'q', 'l', 'R', 't');
-		if( userInp == 'q' )
-			curstate = STATE_EXIT;
-		else if( userInp == 'r' )
-			curstate = STATE_RESET;
-		else if( userInp == 'l' )
-			player.Levelup();
-		else if( userInp == 't' ){
-			clear();
-			refresh();
-			curstate = STATE_TALENTS;
-		}
-
-		break;
-	case STATE_TALENTS:
-		player.PrintTalents();
-		player.PrintCurrentLevel();
-		player.PrintTalentPoints();
-		userInp = GetUserInp(2, 'b', 'q');
-		if( userInp == 'b' )
-			curstate = STATE_STATS;
-		break;
-	default:
-		break;
-	}
-}
-
-
-
-int rand_num(int min, int max){
-	std::uniform_int_distribution<int> rand(min, max);
-	return rand(RNGine);
-}
-
-char GetUserInp(int argn, ...){
-	char user_inp;
-	while(true) {
-		user_inp = getch();
-		va_list args;
-		va_start(args, argn);
-		for( int i=0; i<argn; i++ ){
-			if( user_inp == va_arg(args, int) ){
-				clear();
-				va_end(args);
-				return user_inp;
-			}
-		}
-		mvprintw(rand_num(1, 40), rand_num(1, 80), "bad input, try again");
-	}
-}
-
-const int NUM_TALENTS[] = {NUM_STR_TALENTS, NUM_DEX_TALENTS, NUM_CON_TALENTS, NUM_INT_TALENTS, NUM_WIS_TALENTS, NUM_CHA_TALENTS};
-
-const char* STAT_NAMES[] = {
-	"STR",
-	"DEX",
-	"CON",
-	"INT",
-	"WIS",
-	"CHA"
+class TalentTree {
+private:
+	SubTalentTree* stt[NUM_STATS];
+public:
+	TalentTree();
+	~TalentTree();
+	void PrintWin();
+	void AddTalent(int stat, std::string name, std::string desc);
+	//void PrintTalentList(int stat);
 };
-
-const char* TALENT_NAMES[] = {
-//STR
-	"pugilism",
-	"headhunter",
-	"warrior",
-	"mule",
-	"way of frog",
-	"way of ram",
-	"nutcracker",
-//DEX
-	"mist",
-	"exploiter",
-	"accuracy m.",
-	"accuracy r.",
-	"accuracy t.",
-	"speedster",
-	"sealegs",
-	"featherfall",
-	"ballistics",
-	"avoidance",
-//CON
-	"hearty",
-	"healthy",
-	"aegis",
-	"mouth breather",
-	"drunkard",
-	"poise",
-	"castle",
-//INT
-	"empty mind",
-	"magician",
-	"accuracy s.",
-	"firebender",
-	"ice maiden",
-	"necromancer",
-	"the faithful",
-	"melting man",
-//WIS
-	"strong mind",
-	"watch your step",
-	"show yourself!",
-	"the doctor",
-	"druidic",
-	"magic mirroe",
-	"writer's block",
-//CHA
-	"knock knock,",
-	"who's there?",
-	"charge!",
-	"attack!",
-	"hold the line!",
-	"presence",
-	"distract",
-	"bully"
-};
-
-Cwind::Cwind()
-: rows(0) {
-	pos = { 0 };
-	size = { 5, 5 };
-}
-
-Cwind::Cwind(int h, int w, int r, int y, int x)
-: rows(r) {
-	pos = { y, x };
-	size = { h, w };
-}
-
-Cwind::~Cwind(){}
-
-
-void Cwind::AdjustHeight(int h){
-	if( h < 2 ){
-		size.y = 2;
-		return;
-	}
-	size.y = h;
-}
-
-void Cwind::AdjustWidth(int w){
-	if( w < 3 ){
-		size.x = 3;
-		return;
-	} else {
-		if( size.x % 2 == 0 ){
-			size.x = w + 1;
-			return;
-		}
-	}
-	size.x = w;
-}
-
-
-void Cwind::SetTitle(const char* new_title){
-	for( int i=0; i<256; i++ ){
-		if( new_title[i] != '\0' )
-			title[i] = new_title[i];
-		else
-			return;
-	}
-}
-
-void Cwind::PrintBorder(){
-	for( int i=0; i<size.y; i++ ){
-		for( int j=0; j<size.x; j++ ){
-			if( (j == 0) || (j == size.x - 1) )
-				mvaddch(pos.y + i, pos.x + j, '|');
-			else if( (i == 0) || (i == size.y - 1) )
-				mvaddch(pos.y + i, pos.x + j, '_');
-		}
-	}
-	mvaddch(pos.y, pos.x, ' ');
-	mvaddch(pos.y, size.x, ' ');
-}
-
-void Cwind::PrintTitle(){
-	int xtitle = 0;
-	for( int i=0; i<256; i++ ){
-		if( title[i] != '\0' )
-			xtitle++;
-	}
-	xtitle = ceil(size.x/2)-ceil(xtitle/2);
-	for( int i=0; i<256; i++ ){
-		if( i >= size.x )
-			break;
-		mvprintw(pos.y+1, pos.x+i+xtitle, "%c", title[i]);
-	}
-}
-
-void Cwind::Print(){
-	PrintBorder();
-	PrintTitle();
-}
-
-void Cwind::Moveto(int y, int x){
-	pos = {y, x};
-}
-
-void Cwind::Shiftx(int x){
-	pos.x += x;
-}
-
-void Cwind::Shifty(int y){
-	pos.y += y;
-}
-
-void Cwind::AdjustSize(int h, int w){
-	AdjustWidth(w);
-	AdjustHeight(h);
-}
-
-int Cwind::Gety(){
-	return pos.y;
-}
-
-int Cwind::Getx(){
-	return pos.x;
-}
-
-#include <curses.h>
-#include "../include/playercharacter.h"
-#include "../include/lib.h"
 
 PlayerCharacter::PlayerCharacter()
 : level(0) {
 	pos = {1, 1};
-	for( int i=0; i<NUM_OF_STATS; i++ ){
+	for( int i=0; i<NUM_STATS; i++ ){
 		stats[i] = 0;
 		talent_points[i] = 0;
-		for( int j=0; j<TOTAL_TALENTS; j++ ){
-			talents_pointed[i][j] = 0;
-		}
 	}
-	SetStatWind();
-	SetTalentWind();
 }
 
 PlayerCharacter::~PlayerCharacter(){
-}
-
-void PlayerCharacter::SetStatWind(){
-	for( int i=0; i<NUM_OF_STATS; i++ ){
-		stat_wind[i] = new Cwind(SIZE_TALENT_MENU_H, SIZE_TALENT_MENU_W, NUM_TALENTS[i], pos.y, pos.x);
-		stat_wind[i]->SetTitle(STAT_NAMES[i]);
-		stat_wind[i]->Moveto(pos.y + 10, pos.x);
-	}
-}
-
-void PlayerCharacter::SetTalentWind(){
-	for( int i=0; i<NUM_OF_STATS; i++ ){
-		talent_wind[i] = new Cwind(SIZE_TALENT_MENU_H, SIZE_TALENT_MENU_W, NUM_TALENTS[i], pos.y, pos.x);
-		talent_wind[i]->SetTitle(STAT_NAMES[i]);
-		talent_wind[i]->Moveto(pos.y + 10, pos.x);
-	}
 }
 
 void PlayerCharacter::Levelup(){
@@ -387,7 +96,7 @@ void PlayerCharacter::Levelup(){
 }
 
 void PlayerCharacter::GenerateTalentPoints(){
-	for( int i=0; i<NUM_OF_STATS; i++ ){
+	for( int i=0; i<NUM_STATS; i++ ){
 		int dice_thrown = 0;
 		if( stats[i] > 18 ){
 			dice_thrown = 6;
@@ -413,61 +122,375 @@ void PlayerCharacter::IncreaseStat(int stat){
 	stats[stat] += 1;
 }
 
-void PlayerCharacter::SetPosition(int y, int x){
-	pos = {y, x};
+void PlayerCharacter::SetPos(struct Pos new_pos){
+	pos = new_pos;
 }
 
 void PlayerCharacter::PrintCurrentLevel(){
 	mvprintw(pos.y, pos.x + 4, "LEVEL: %i", level);
 }
 
-void PlayerCharacter::PrintStats(){
-	struct Vector temp_pos = {pos.y + 2, pos.x};
-	mvaddstr(temp_pos.y, temp_pos.x, "stats:");
-	for( int i=0; i<NUM_OF_STATS; i++ ){
-		mvaddstr(temp_pos.y + 1 + i, temp_pos.x, STAT_NAMES[i]);
-		mvprintw(temp_pos.y + 1 + i, temp_pos.x + 5, "%i", stats[i]);
-	}
+Cwin::Cwin() {
+	pos = { 0 };
+	size = { 5, 5 };
 }
 
-void PlayerCharacter::PrintTalentPoints(){
-	struct Vector temp_pos = {pos.y + 2, pos.x};
-	mvaddstr(temp_pos.y, temp_pos.x, "talent points:");
-	for( int i=0; i<NUM_OF_STATS; i++ ){
-		mvaddstr(temp_pos.y + 1 + i, temp_pos.x, STAT_NAMES[i]);
-		mvprintw(temp_pos.y + 1 + i, temp_pos.x + 5, "%i", talent_points[i]);
-	}
+Cwin::Cwin(int h, int w, int y, int x) {
+	pos = { y, x };
+	size = { h, w };
 }
 
-void PlayerCharacter::PrintTalent(int y, int x, int t){
-	struct Vector offset = { 3, 2 };
-	for( int i=0; i<NUM_TALENTS[t]; i++  ){
-		offset.x = 2;
-		mvprintw(y + offset.y + i, x + offset.x, "[%i]", talent_points[i]);
-		offset.x += 4;
-		for(int j=0; j<256; j++ ){
-			if( TALENT_NAMES[i][j] == '\0' ){
-				break;
+Cwin::~Cwin(){}
+
+
+void Cwin::AdjustHeight(int h) {
+	if( h < 2 ){
+		size.y = 2;
+		return;
+	}
+	size.y = h;
+}
+
+void Cwin::AdjustWidth(int w) {
+	if( w < 3 ){
+		size.x = 3;
+		return;
+	} else {
+		if( size.x % 2 == 0 ){
+			size.x = w + 1;
+			return;
+		}
+	}
+	size.x = w;
+}
+
+void Cwin::Print() {
+	for( int i=0; i<size.y; i++ ){
+		for( int j=0; j<size.x; j++ ){
+			if( (j == 0) || (j == size.x - 1) )
+				mvaddch(pos.y + i, pos.x + j, '|');
+			else if( (i == 0) || (i == size.y - 1) )
+				mvaddch(pos.y + i, pos.x + j, '_');
+			else
+				mvaddch(pos.y + i, pos.x + j, ' ');
+		}
+	}
+	mvaddch(pos.y, pos.x, ' ');
+	mvaddch(pos.y, size.x, ' ');
+}
+
+void Cwin::Moveto(int y, int x) {
+	pos = {y, x};
+}
+
+void Cwin::Shiftx(int x) {
+	pos.x += x;
+}
+
+void Cwin::Shifty(int y) {
+	pos.y += y;
+}
+
+void Cwin::AdjustSize(int h, int w) {
+	AdjustWidth(w);
+	AdjustHeight(h);
+}
+
+int Cwin::Gety() {
+	return pos.y;
+}
+
+int Cwin::Getx() {
+	return pos.x;
+}
+
+const int NUM_TALENTS_IN_STAT[] = {NUM_STR_TALENTS, NUM_DEX_TALENTS, NUM_CON_TALENTS, NUM_INT_TALENTS, NUM_WIS_TALENTS, NUM_CHA_TALENTS};
+
+const std::string STAT_NAMES[] = {
+	"STR",
+	"DEX",
+	"CON",
+	"INT",
+	"WIS",
+	"CHA",
+	"LCK"
+};
+
+std::random_device rd;
+std::mt19937 RNGine(rd());
+int rand_num(int min, int max){
+	std::uniform_int_distribution<int> rand(min, max);
+	return rand(RNGine);
+}
+
+char GetUserInp(int argn, ...){
+	char user_inp;
+	while(true) {
+		user_inp = getch();
+		va_list args;
+		va_start(args, argn);
+		for( int i=0; i<argn; i++ ){
+			if( user_inp == va_arg(args, int) ){
+				clear();
+				va_end(args);
+				return user_inp;
 			}
-			mvprintw(y + offset.y + i, x + offset.x, "%c", TALENT_NAMES[i][j]);
-			offset.x++;
+		}
+		mvprintw(rand_num(1, 40), rand_num(1, 80), "bad input, try again");
+	}
+}
+
+Talent::Talent()
+: stat(0), name("N/A"), desc("N/A") {}
+
+Talent::Talent(int s, std::string n, std::string d)
+: stat(s), name(n), desc(d) {}
+
+Talent::~Talent(){}
+
+Talent* Talent::GetNext(){
+	return next;
+}
+
+void Talent::SetNext(Talent* new_next){
+	next = new_next;
+}
+
+SubTalentTree::SubTalentTree()
+: stat(0){
+	head = new Talent;
+}
+
+SubTalentTree::SubTalentTree(int s)
+: stat(s){}
+
+SubTalentTree::~SubTalentTree() {}
+
+void SubTalentTree::AddTalent(std::string name, std::string desc) {
+	Talent* temp = head;
+	if( head == nullptr ){
+		head = new Talent(stat, name, desc);
+		return;
+	}
+
+	while( temp->GetNext() != nullptr ){
+		temp = temp->GetNext();
+	}
+	temp->SetNext(new Talent(stat, name, desc));
+}
+
+void SubTalentTree::PrintTalents(){
+	
+}
+
+TalentTree::TalentTree() {
+	for( int i=0; i<NUM_STATS; i++ ){
+		stt[i] = new SubTalentTree(0);
+	}
+}
+
+TalentTree::~TalentTree() {
+	for( int i=0; i<NUM_STATS; i++ ){
+		//delete stt[i];
+	}
+}
+
+void TalentTree::AddTalent(int stat, std::string name, std::string desc){
+	stt[stat]->AddTalent(name, desc);
+}
+
+PlayerCharacter::PlayerCharacter()
+: level(0) {
+	pos = {1, 1};
+	for( int i=0; i<NUM_STATS; i++ ){
+		stats[i] = 0;
+		talent_points[i] = 0;
+	}
+}
+
+PlayerCharacter::~PlayerCharacter(){
+}
+
+void PlayerCharacter::Levelup(){
+	GenerateTalentPoints();
+	level += 1;
+}
+
+void PlayerCharacter::GenerateTalentPoints(){
+	for( int i=0; i<NUM_STATS; i++ ){
+		int dice_thrown = 0;
+		if( stats[i] > 18 ){
+			dice_thrown = 6;
+		} else if( stats[i] > 16 ){
+			dice_thrown = 5;
+		} else if( stats[i] > 14 ){
+			dice_thrown = 4;
+		} else if( stats[i] > 12 ){
+			dice_thrown = 3;
+		} else if( stats[i] > 10 ){
+			dice_thrown = 2;
+		} else if( stats[i] > 7 ){
+			dice_thrown = 1;
+		}
+
+		for( int j=0; j<dice_thrown; j++ ){
+			talent_points[i] += rand_num(1, 4);
 		}
 	}
 }
 
-void PlayerCharacter::PrintTalents(){
-	Vector offset = { 0 };
-	int margin = 25;
-	talent_wind[0]->Print();
-	PrintTalent(talent_wind[0]->Gety(), talent_wind[0]->Getx(), 0);
+void PlayerCharacter::IncreaseStat(int stat){
+	stats[stat] += 1;
+}
+
+void PlayerCharacter::SetPos(struct Pos new_pos){
+	pos = new_pos;
+}
+
+void PlayerCharacter::PrintCurrentLevel(){
+	mvprintw(pos.y, pos.x + 4, "LEVEL: %i", level);
+}
+
+void StateMachine(TalentTree tt, Cwin& cwin, PlayerCharacter& player, AppState& curstate, int& statselected, char& userInp);
+void InitTalents(TalentTree& tt);
+
+void initialize(){
+	initscr(); cbreak(); noecho();
+	keypad(stdscr, TRUE);
+}
+
+int deinitialize(){
+	endwin();
+	return 0;
+}
+
+int main(){
+	initialize();
+	enum AppState curstate = STATE_STATS;
+	int statselected = 0;
+	char userInp = '\0';
+	TalentTree tt;
+	Cwin cwin(40, 81, 1, 1);
+
+	while( curstate != STATE_EXIT ){
+		clear();
+		struct Pos player_origin = { 4, 4 };
+		PlayerCharacter player; 
+		player.SetPos(player_origin);
+		curstate = STATE_STATS;
+		
+		while( true ){
+			StateMachine(tt, cwin, player, curstate, statselected, userInp);
+			if( (curstate == STATE_RESET) || (curstate == STATE_EXIT) )
+				break;
+		}
+		if( curstate == STATE_EXIT )
+			break;
+	}
+	return deinitialize();
+}
+
+void StateMachine(TalentTree tt, Cwin& cwin, PlayerCharacter& player, AppState& curstate, int& statselected, char& userInp){
+	switch( curstate ){
+	case STATE_STATS:
+		cwin.Print();
+		//player.IncreaseStat(int(userInp) - int('0') - 1);
+		player.PrintCurrentLevel();
+		PrintLevelupPrompt(20, 3);
+		userInp = GetUserInp(10, '1', '2', '3', '4', '5', '6', 'q', 'L', 'R', 't');
+		if( userInp == 'q' )
+			curstate = STATE_EXIT;
+		else if( userInp == 'R' )
+			curstate = STATE_RESET;
+		else if( userInp == 'L' )
+			player.Levelup();
+		else if( userInp == 't' ){
+			clear();
+			refresh();
+			curstate = STATE_TALENTS;
+		}
+		break;
+
+	case STATE_TALENTS:
+		player.PrintCurrentLevel();
+		userInp = GetUserInp(3, 'h', 'l', 'b');
+		if( userInp == 'b' )
+			curstate = STATE_STATS;
+		else if( userInp == 'h' ){
+			if( statselected == 0 )
+				statselected = NUM_STATS - 1;
+			else
+				statselected--;
+		} else if( userInp == 'l' ){
+			if( statselected == NUM_STATS - 1 )
+				statselected = 0;
+			else
+				statselected++;
+		}
+		break;
+
+	default:
+		break;
+	}
 }
 
 void PrintLevelupPrompt(int y, int x){
 	int xx = x;
 	mvprintw(y, x, "Select a stat that you would like to upgrade [1-6]");
-	for( int i=0; i<NUM_OF_STATS; i++ ){
-		mvprintw(y+1, xx, "%i = %s", i + 1, STAT_NAMES[i]);
+	for( int i=0; i<NUM_STATS; i++ ){
+		mvprintw(y+1, xx, "%i = %s", i + 1, STAT_NAMES[i].c_str());
 		xx += 9;
 	}
 	mvprintw(y + 3, x, "press 'r' to reset and 'q' to quit");
+}
+
+void InitTalents(TalentTree& tt){
+	tt.AddTalent(0, "Puglism", "Unarmed damage.");
+	tt.AddTalent(0, "Headhunter", "Throwing damage.");
+	tt.AddTalent(0, "Warrior", "Weapon damage.");
+	tt.AddTalent(0, "Mule", "Carry weight.");
+	tt.AddTalent(0, "Way of the Frog", "Jumping increase.");
+	tt.AddTalent(0, "Way of the Ram", "Knockback increase.");
+	tt.AddTalent(0, "Nutcracker", "Grip strength.");
+	tt.AddTalent(1, "Mist", "Chance to dodge.");
+	tt.AddTalent(1, "Exploiter", "Chance for subcrit.");
+	tt.AddTalent(1, "Accuracy M.", "Chance to Hit (Melee weapons).");
+	tt.AddTalent(1, "Accuracy R.", "Chance to Hit (Ranged weapons).");
+	tt.AddTalent(1, "Accuracy T.", "Chance to Hit (Thrown weapons).");
+	tt.AddTalent(1, "Speedster", "Movement speed increase.");
+	tt.AddTalent(1, "Sealegs", "Chance to maintain balance.");
+	tt.AddTalent(1, "Featherfall", "Reduced fall damage.");
+	tt.AddTalent(1, "Ballistics", "Increase projectile range.");
+	tt.AddTalent(1, "Avoidance", "Increased saving throw on AoE effects.");
+	tt.AddTalent(2, "Hearty", "Health increase.");
+	tt.AddTalent(2, "Healthy", "Resistance increase (Bleeding, Poison, Disease).");
+	tt.AddTalent(2, "Aegis", "Chance to deflect damage type.");
+	tt.AddTalent(2, "Mouth Breather", "Reduced DoT from neck Constriction.");
+	tt.AddTalent(2, "Drunkard", "Drinking tolerance.");
+	tt.AddTalent(2, "Poise", "Resistance to knockback.");
+	tt.AddTalent(2, "Castle", "Make yourself cover for allies.");
+	tt.AddTalent(3, "Empty Mind", "Buff duration increase.");
+	tt.AddTalent(3, "Magician", "All spell damage increase.");
+	tt.AddTalent(3, "Accuracy S.", "Chance to Hit (Spells).");
+	tt.AddTalent(3, "Firebender", "Fire and Lightning damage increase.");
+	tt.AddTalent(3, "Ice Maiden", "Ice damage increase.");
+	tt.AddTalent(3, "Necromancer", "Necrotic damage increase.");
+	tt.AddTalent(3, "The Faithful", "Radiant damage increase.");
+	tt.AddTalent(3, "Melting Man", "Acid damage increase.");
+	tt.AddTalent(4, "Strong Mind", "Increase DC spell break saves.");
+	tt.AddTalent(4, "Watch Your Step!", "Chance to spot traps passively.");
+	tt.AddTalent(4, "Show Yourself!", "Chance to spot hidden movements passively.");
+	tt.AddTalent(4, "The Doctor", "Increase spell healing.");
+	tt.AddTalent(4, "Druidic", "Increased offensive nature damage.");
+	tt.AddTalent(4, "Magic Mirror", "Chance to deflect small magic projectiles.");
+	tt.AddTalent(4, "Writer's Block", "Chance to gain insight while crafting.");
+	tt.AddTalent(5, "Knock Knock,", "Chance to be funny.");
+	tt.AddTalent(5, "Who's There?", "Chance to persuade door.");
+	tt.AddTalent(5, "Charge!", "Chance for nearby allies to roll +1 initiative.");
+	tt.AddTalent(5, "Attack!", "Chance for nearby allies to increase primary damage stat +1.");
+	tt.AddTalent(5, "Hold the Line!", "Chance for nearby allies to increase AC +1.");
+	tt.AddTalent(5, "Presence", "Increased threat.");
+	tt.AddTalent(5, "Distract", "Chance to decrease threat for one turn.");
+	tt.AddTalent(5, "Bully", "psychic damage increase.");
+	tt.AddTalent(6, "Luck", "Lucky.");
 }
