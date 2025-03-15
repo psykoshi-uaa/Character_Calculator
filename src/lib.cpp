@@ -15,6 +15,16 @@ const std::string STAT_NAMES[] = {
 	"LCK"
 };
 
+const std::string STAT_NAMES_LONG[] = {
+	"strength",
+	"dexterity",
+	"constitution",
+	"intelligence",
+	"wisdom",
+	"charisma",
+	"luck"
+};
+
 std::random_device rd;
 std::mt19937 RNGine(rd());
 int rand_num(int min, int max){
@@ -23,19 +33,18 @@ int rand_num(int min, int max){
 }
 
 char GetUserInp(int argn, ...){
-	char user_inp;
+	char userInp;
 	while(true) {
-		user_inp = getch();
+		userInp = getch();
 		va_list args;
 		va_start(args, argn);
 		for( int i=0; i<argn; i++ ){
-			if( user_inp == va_arg(args, int) ){
+			if( userInp == va_arg(args, int) ){
 				clear();
 				va_end(args);
-				return user_inp;
+				return userInp;
 			}
 		}
-		mvprintw(rand_num(1, 40), rand_num(1, 80), "bad input, try again");
 	}
 }
 

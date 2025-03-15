@@ -6,13 +6,17 @@
 #include "include/playercharacter.h"
 #include "include/lib.h"
 #include "include/cwin.h"
+#include "include/prints.h"
 
-void StateMachine(TalentTree tt, Cwin& cwin, PlayerCharacter& player, AppState& curstate, int& statselected, char& userInp);
+void StateMachine(TalentTree tt, Cwin* cwin[3], PlayerCharacter& player, AppState& curstate, int& statselected, char& userInp, struct Pos tooltip_pos);
 void InitTalents(TalentTree& tt);
 
 void initialize(){
-	initscr(); cbreak(); noecho();
-	keypad(stdscr, TRUE);
+	initscr();
+	start_color();
+	cbreak();
+	noecho();
+	curs_set(0);
 }
 
 int deinitialize(){
@@ -22,21 +26,42 @@ int deinitialize(){
 
 int main(){
 	initialize();
+	init_pair(1, COLOR_RED, COLOR_BLACK);
+	init_pair(2, COLOR_GREEN, COLOR_BLACK);
+	init_pair(3, COLOR_YELLOW, COLOR_BLACK);
+	init_pair(4, COLOR_CYAN, COLOR_BLACK);
+	init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
+	init_pair(6, COLOR_YELLOW, COLOR_BLACK);
+	init_pair(7, COLOR_WHITE, COLOR_BLACK);
+	init_pair(8, COLOR_BLACK, COLOR_RED);
+	init_pair(9, COLOR_BLACK, COLOR_GREEN);
+	init_pair(10, COLOR_BLACK, COLOR_YELLOW);
+	init_pair(11, COLOR_BLACK, COLOR_CYAN);
+	init_pair(12, COLOR_BLACK, COLOR_MAGENTA);
+	init_pair(13, COLOR_BLACK, COLOR_YELLOW);
+	init_pair(14, COLOR_BLACK, COLOR_WHITE);
+
 	enum AppState curstate = STATE_STATS;
 	int statselected = 0;
 	char userInp = '\0';
 	TalentTree tt;
-	Cwin cwin(40, 81, 1, 1);
+
+	struct Pos screensize = { 0 };
+	getmaxyx(stdscr, screensize.y, screensize.x);
+	screensize = {screensize.y-2, screensize.x-2};
+	Cwin* cwin[3];
+	cwin[0] = new Cwin(screensize.y/2, screensize.x, 1, 1);
+	cwin[1] = new Cwin(4, 6, 7, 5);
+	cwin[2] = new Cwin(30, 5, 20, 3);
+	struct Pos tooltip_pos = { screensize.y/2-1, screensize.x/4};
 
 	while( curstate != STATE_EXIT ){
 		clear();
-		struct Pos player_origin = { 4, 4 };
 		PlayerCharacter player; 
-		player.SetPos(player_origin);
 		curstate = STATE_STATS;
 		
 		while( true ){
-			StateMachine(tt, cwin, player, curstate, statselected, userInp);
+			StateMachine(tt, cwin, player, curstate, statselected, userInp, tooltip_pos);
 			if( (curstate == STATE_RESET) || (curstate == STATE_EXIT) )
 				break;
 		}
@@ -46,14 +71,19 @@ int main(){
 	return deinitialize();
 }
 
-void StateMachine(TalentTree tt, Cwin& cwin, PlayerCharacter& player, AppState& curstate, int& statselected, char& userInp){
+//i1
+void StateMachine(TalentTree tt, Cwin* cwin[3], PlayerCharacter& player, AppState& curstate, int& statselected, char& userInp, struct Pos tooltip_pos){
+	struct Pos levelpos = { 1, 3 };
+	struct Pos statpos = { 3, 5 };
+	cwin[0]->Print();
 	switch( curstate ){
 	case STATE_STATS:
-		cwin.Print();
-		//player.IncreaseStat(int(userInp) - int('0') - 1);
-		player.PrintCurrentLevel();
-		PrintLevelupPrompt(20, 3);
-		userInp = GetUserInp(10, '1', '2', '3', '4', '5', '6', 'q', 'L', 'R', 't');
+		PrintCurrentLevel(player, levelpos);
+		PrintCurrentStats(cwin[1], player, statpos, statselected);
+		PrintStatNames(statpos, -1);
+		PrintStatDescription(tooltip_pos, statselected);
+
+		userInp = GetUserInp(10, 'h', 'j', 'k', 'l', 'q', 'L', 'R', 't');
 		if( userInp == 'q' )
 			curstate = STATE_EXIT;
 		else if( userInp == 'R' )
@@ -64,20 +94,37 @@ void StateMachine(TalentTree tt, Cwin& cwin, PlayerCharacter& player, AppState& 
 			clear();
 			refresh();
 			curstate = STATE_TALENTS;
-		}
-		break;
-
-	case STATE_TALENTS:
-		player.PrintCurrentLevel();
-		userInp = GetUserInp(3, 'h', 'l', 'b');
-		if( userInp == 'b' )
-			curstate = STATE_STATS;
-		else if( userInp == 'h' ){
+		} else if( userInp == 'k' ){
 			if( statselected == 0 )
 				statselected = NUM_STATS - 1;
 			else
 				statselected--;
+		} else if( userInp == 'j' ){
+			if( statselected == NUM_STATS - 1 )
+				statselected = 0;
+			else
+				statselected++;
+		} else if( userInp == 'h' ){
+			player.SetStat(statselected, -1);
 		} else if( userInp == 'l' ){
+			player.SetStat(statselected, 1);
+		}
+		break;
+//i1.1
+	case STATE_TALENTS:
+		PrintCurrentLevel(player, levelpos);
+		PrintStatNames(statpos, statselected);
+		PrintAvailableTalentPoints(player, statpos);
+
+		userInp = GetUserInp(3, 'j', 'k', 'b');
+		if( userInp == 'b' )
+			curstate = STATE_STATS;
+		else if( userInp == 'k' ){
+			if( statselected == 0 )
+				statselected = NUM_STATS - 1;
+			else
+				statselected--;
+		} else if( userInp == 'j' ){
 			if( statselected == NUM_STATS - 1 )
 				statselected = 0;
 			else
@@ -88,16 +135,6 @@ void StateMachine(TalentTree tt, Cwin& cwin, PlayerCharacter& player, AppState& 
 	default:
 		break;
 	}
-}
-
-void PrintLevelupPrompt(int y, int x){
-	int xx = x;
-	mvprintw(y, x, "Select a stat that you would like to upgrade [1-6]");
-	for( int i=0; i<NUM_STATS; i++ ){
-		mvprintw(y+1, xx, "%i = %s", i + 1, STAT_NAMES[i].c_str());
-		xx += 9;
-	}
-	mvprintw(y + 3, x, "press 'r' to reset and 'q' to quit");
 }
 
 void InitTalents(TalentTree& tt){

@@ -16,9 +16,11 @@
 #define SIZE_TALENT_MENU_W 24
 #define SIZE_SIZE_MENU_H 9
 #define SIZE_SIZE_MENU_W 9
+#define STAT_MARGIN_Y 4
 
 extern const int NUM_TALENTS_IN_STAT[NUM_TALENTS];
 extern const std::string STAT_NAMES[NUM_STATS];
+extern const std::string STAT_NAMES_LONG[NUM_STATS];
 
 int rand_num(int min, int max);
 char GetUserInp(int argn, ...);

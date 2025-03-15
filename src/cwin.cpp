@@ -39,20 +39,18 @@ void Cwin::AdjustWidth(int w) {
 void Cwin::Print() {
 	for( int i=0; i<size.y; i++ ){
 		for( int j=0; j<size.x; j++ ){
-			if( (j == 0) || (j == size.x - 1) )
+			if( ((j == 0) || (j == size.x - 1)) && (i != 0) )
 				mvaddch(pos.y + i, pos.x + j, '|');
-			else if( (i == 0) || (i == size.y - 1) )
+			else if( ((i == 0) || (i == size.y - 1)) && ((j != 0) && (j != size.x-1)) )
 				mvaddch(pos.y + i, pos.x + j, '_');
 			else
 				mvaddch(pos.y + i, pos.x + j, ' ');
 		}
 	}
-	mvaddch(pos.y, pos.x, ' ');
-	mvaddch(pos.y, size.x, ' ');
 }
 
-void Cwin::Moveto(int y, int x) {
-	pos = {y, x};
+void Cwin::Moveto(struct Pos new_pos) {
+	pos = new_pos;
 }
 
 void Cwin::Shiftx(int x) {

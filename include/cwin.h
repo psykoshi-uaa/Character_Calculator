@@ -17,7 +17,7 @@ public:
 	Cwin(int h, int w, int y, int x);
 	~Cwin();
 	void Print();
-	void Moveto(int y, int x);
+	void Moveto(struct Pos pos);
 	void Shiftx(int x=0);
 	void Shifty(int y=0);
 	void AdjustSize(int h, int x);
