@@ -3,7 +3,7 @@
 #include <string>
 #include "../include/lib.h"
 
-const int NUM_TALENTS_IN_STAT[] = {NUM_STR_TALENTS, NUM_DEX_TALENTS, NUM_CON_TALENTS, NUM_INT_TALENTS, NUM_WIS_TALENTS, NUM_CHA_TALENTS};
+const int NUM_TALENTS_IN_STAT[] = {NUM_STR_TALENTS, NUM_DEX_TALENTS, NUM_CON_TALENTS, NUM_INT_TALENTS, NUM_WIS_TALENTS, NUM_CHA_TALENTS, 1};
 
 const std::string STAT_NAMES[] = {
 	"STR",
@@ -40,7 +40,6 @@ char GetUserInp(int argn, ...){
 		va_start(args, argn);
 		for( int i=0; i<argn; i++ ){
 			if( userInp == va_arg(args, int) ){
-				clear();
 				va_end(args);
 				return userInp;
 			}
@@ -49,10 +48,10 @@ char GetUserInp(int argn, ...){
 }
 
 Talent::Talent()
-: stat(0), name("N/A"), desc("N/A") {}
+: level(0), name("N/A"), desc("N/A") {}
 
 Talent::Talent(int s, std::string n, std::string d)
-: stat(s), name(n), desc(d) {}
+: level(s), name(n), desc(d) {}
 
 Talent::~Talent(){}
 
@@ -64,45 +63,92 @@ void Talent::SetNext(Talent* new_next){
 	next = new_next;
 }
 
-SubTalentTree::SubTalentTree()
-: stat(0){
-	head = new Talent;
+std::string Talent::GetName(){
+	return name;
 }
 
-SubTalentTree::SubTalentTree(int s)
-: stat(s){}
+int Talent::GetLevel(){
+	return level;
+}
 
-SubTalentTree::~SubTalentTree() {}
+std::string Talent::GetDesc(){
+	return desc;
+}
 
-void SubTalentTree::AddTalent(std::string name, std::string desc) {
-	Talent* temp = head;
-	if( head == nullptr ){
-		head = new Talent(stat, name, desc);
+TalentTree::TalentTree() { }
+
+
+TalentTree::~TalentTree() { }
+
+void TalentTree::AddTalent(int s, std::string name, std::string desc){
+	Talent* new_talent = new Talent(s, name, desc);
+	if( head[s] == nullptr ){
+		head[s] = new_talent;
 		return;
 	}
 
+	Talent* temp = head[s];
 	while( temp->GetNext() != nullptr ){
 		temp = temp->GetNext();
 	}
-	temp->SetNext(new Talent(stat, name, desc));
+
+	temp->SetNext(new_talent);
 }
 
-void SubTalentTree::PrintTalents(){
-	
-}
+int TalentTree::GetTalentLevel(int s, int n){
+	int counter = 0;
+	Talent* temp = head[s];
 
-TalentTree::TalentTree() {
-	for( int i=0; i<NUM_STATS; i++ ){
-		stt[i] = new SubTalentTree(0);
+	if( head[s] == nullptr ){
+		return -1;
 	}
-}
 
-TalentTree::~TalentTree() {
-	for( int i=0; i<NUM_STATS; i++ ){
-		//delete stt[i];
+	while( temp->GetNext() != nullptr ){
+		if( counter == n ){
+			break;
+		}
+		temp = temp->GetNext();
+		counter++;
 	}
+
+	return temp->GetLevel();
 }
 
-void TalentTree::AddTalent(int stat, std::string name, std::string desc){
-	stt[stat]->AddTalent(name, desc);
+std::string TalentTree::GetTalentName(int s, int n){
+	int counter = 0;
+	Talent* temp = head[s];
+
+	if( head[s] == nullptr ){
+		return "ERROR: head is nullptr";
+	}
+
+	while( temp->GetNext() != nullptr ){
+		if( counter == n ){
+			break;
+		}
+		temp = temp->GetNext();
+		counter++;
+	}
+
+	return temp->GetName();
 }
+
+std::string TalentTree::GetTalentDesc(int s, int n){
+	int counter = 0;
+	Talent* temp = head[s];
+
+	if( head[s] == nullptr ){
+		return "ERROR: head is nullptr";
+	}
+
+	while( temp->GetNext() != nullptr ){
+		if( counter == n ){
+			break;
+		}
+		temp = temp->GetNext();
+		counter++;
+	}
+
+	return temp->GetDesc();
+}
+

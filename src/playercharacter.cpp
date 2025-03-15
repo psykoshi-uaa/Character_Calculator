@@ -3,7 +3,16 @@
 #include "../include/lib.h"
 
 PlayerCharacter::PlayerCharacter()
-: level(0) {
+: level(0), talent(nullptr) {
+	for( int i=0; i<NUM_STATS; i++ ){
+		stat[i] = 0;
+		talent_point[i] = 0;
+		talent_point[i] = 0;
+	}
+}
+
+PlayerCharacter::PlayerCharacter(std::string n, TalentTree* t)
+: level(0), name(n), talent(nullptr) {
 	for( int i=0; i<NUM_STATS; i++ ){
 		stat[i] = 0;
 		talent_point[i] = 0;
@@ -20,22 +29,18 @@ void PlayerCharacter::Levelup(){
 
 void PlayerCharacter::GenerateTalentPoints(){
 	for( int i=0; i<NUM_STATS; i++ ){
-		int dice_thrown = 0;
 		if( stat[i] > 18 ){
-			dice_thrown = 6;
+			talent_point[i] += rand_num(1, 8);
+			talent_point[i] += rand_num(1, 8);
 		} else if( stat[i] > 16 ){
-			dice_thrown = 5;
+			talent_point[i] += rand_num(1, 12);
 		} else if( stat[i] > 14 ){
-			dice_thrown = 4;
+			talent_point[i] += rand_num(1, 10);
 		} else if( stat[i] > 12 ){
-			dice_thrown = 3;
+			talent_point[i] += rand_num(1, 8);
 		} else if( stat[i] > 10 ){
-			dice_thrown = 2;
-	} else if( stat[i] > 7 ){
-			dice_thrown = 1;
-		}
-
-		for( int j=0; j<dice_thrown; j++ ){
+			talent_point[i] += rand_num(1, 6);
+		} else if( stat[i] > 7 ){
 			talent_point[i] += rand_num(1, 4);
 		}
 	}
@@ -53,6 +58,20 @@ int PlayerCharacter::GetStat(int i){
 	return stat[i];
 }
 
-int PlayerCharacter::GetTalentPoint(int i){
+int PlayerCharacter::GetTalentPoint(int i) {
 	return talent_point[i];
+}
+
+int PlayerCharacter::GetTalentLevel(int s, std::string n) {
+	int level = 0;
+	Talent* temp = talent;
+	if( talent != nullptr ){
+		while( temp->GetNext() != nullptr ){
+			if( temp->GetName() == n ){
+				level = temp->GetLevel();
+			}
+			temp = temp->GetNext();
+		}
+	}
+	return level;
 }

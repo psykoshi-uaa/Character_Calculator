@@ -5,11 +5,11 @@
 #include "../include/playercharacter.h"
 
 
-void PrintStatNames(struct Pos pos, int statselected){
+void PrintStatNames(struct Pos pos, int s){
 	struct Pos new_pos = pos;
 	for( int i=0; i<NUM_STATS; i++ ){
 		int col = i+1;
-		if( i == statselected ){
+		if( i == s ){
 			col += 7;
 		}
 		attron(COLOR_PAIR(col));
@@ -58,7 +58,7 @@ void PrintCurrentLevel(PlayerCharacter player, struct Pos pos){
 	mvprintw(pos.y, pos.x, "LEVEL: %i", player.GetLevel());
 }
 
-void PrintCurrentStats(Cwin* statwin, PlayerCharacter player, struct Pos pos, int statselected){
+void PrintCurrentStats(Cwin* statwin, PlayerCharacter player, struct Pos pos, int s){
 	int statx = 0;
 	struct Pos new_pos = pos;
 	new_pos.x += 3;
@@ -71,7 +71,7 @@ void PrintCurrentStats(Cwin* statwin, PlayerCharacter player, struct Pos pos, in
 		else
 			statx = 0;
 
-		if( i == statselected ){
+		if( i == s ){
 			attron(COLOR_PAIR(14));
 			mvprintw(new_pos.y + 2, new_pos.x + statx, "%i", player.GetStat(i));
 			attroff(COLOR_PAIR(14));
@@ -90,4 +90,22 @@ void PrintAvailableTalentPoints(PlayerCharacter player, struct Pos pos){
 		mvprintw(new_pos.y, new_pos.x, "talent points: %i", player.GetTalentPoint(i));
 		new_pos.y += STAT_MARGIN_Y;
 	}
+}
+
+void PrintStatTalents(TalentTree* tt, PlayerCharacter player, struct Pos pos, int s, int t){
+	struct Pos new_pos = pos;
+	for( int i=0; i<NUM_TALENTS_IN_STAT[s]; i++ ){
+		mvprintw(new_pos.y + i, pos.x + 4, "%s", tt->GetTalentName(s, i).c_str());
+		if( t == i ){
+			attron(COLOR_PAIR(14));
+			mvprintw(new_pos.y + i, pos.x + 4, "%s", tt->GetTalentName(s, i).c_str());
+			attroff(COLOR_PAIR(14));
+		} else
+			mvprintw(new_pos.y + i, pos.x + 4, "%s", tt->GetTalentName(s, i).c_str());
+		new_pos.y += 1;
+	}
+}
+
+void PrintStatTalentsDesc(TalentTree* tt, struct Pos pos, int s, int t){
+	mvprintw(pos.y, pos.x, "%s", tt->GetTalentDesc(s, t).c_str());
 }

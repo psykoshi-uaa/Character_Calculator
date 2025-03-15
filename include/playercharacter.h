@@ -10,15 +10,17 @@ extern const std::string TALENT_NAMES[NUM_TALENTS];
 
 class PlayerCharacter {
 private:
+	std::string name;
+	int level;
 	int stat[NUM_STATS];
 	int talent_point[NUM_STATS];
-	int talents_pointed[NUM_STATS][NUM_TALENTS];
-	int level;
+	Talent* talent;
 	Cwin* stat_win[NUM_STATS];
 	Cwin* talent_win;
 
 public:
 	PlayerCharacter();
+	PlayerCharacter(std::string n, TalentTree* t);
 	~PlayerCharacter();
 	void Levelup();
 	void GenerateTalentPoints();
@@ -26,4 +28,5 @@ public:
 	int GetLevel();
 	int GetStat(int i);
 	int GetTalentPoint(int i);
+	int GetTalentLevel(int s, std::string n);
 };

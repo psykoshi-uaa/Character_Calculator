@@ -18,7 +18,7 @@
 #define SIZE_SIZE_MENU_W 9
 #define STAT_MARGIN_Y 4
 
-extern const int NUM_TALENTS_IN_STAT[NUM_TALENTS];
+extern const int NUM_TALENTS_IN_STAT[NUM_STATS];
 extern const std::string STAT_NAMES[NUM_STATS];
 extern const std::string STAT_NAMES_LONG[NUM_STATS];
 
@@ -31,7 +31,7 @@ enum StatState { STATE_STR, STATE_DEX, STATE_CON, STATE_INT, STATE_WIS, STATE_CH
 
 class Talent {
 private:
-	int stat;
+	int level;
 	std::string name;
 	std::string desc;
 	Talent* next;
@@ -40,28 +40,20 @@ public:
 	Talent(int s, std::string n, std::string d);
 	~Talent();
 	Talent* GetNext();
+	int GetLevel();
 	void SetNext(Talent* new_next);
-};
-
-class SubTalentTree {
-private:
-	int stat;
-	Talent* head;
-public:
-	SubTalentTree();
-	SubTalentTree(int s);
-	~SubTalentTree();
-	void AddTalent(std::string name, std::string desc);
-	void PrintTalents();
+	std::string GetName();
+	std::string GetDesc();
 };
 
 class TalentTree {
 private:
-	SubTalentTree* stt[NUM_STATS];
+	Talent* head[NUM_STATS];
 public:
 	TalentTree();
 	~TalentTree();
-	void PrintWin();
 	void AddTalent(int stat, std::string name, std::string desc);
-	//void PrintTalentList(int stat);
+	int GetTalentLevel(int s, int n);
+	std::string GetTalentName(int s, int n);
+	std::string GetTalentDesc(int s, int n);
 };
