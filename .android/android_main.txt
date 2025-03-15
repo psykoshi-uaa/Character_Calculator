@@ -4,6 +4,31 @@
 #include <cmath>
 #include <string>
 
+struct Pos {
+	int y;
+	int x;
+};
+
+class Cwin {
+private:
+	struct Pos pos;
+	struct Pos size;
+	void AdjustHeight(int h);
+	void AdjustWidth(int w);
+	
+public:
+	Cwin();
+	Cwin(int h, int w, int y, int x);
+	~Cwin();
+	void Print();
+	void Moveto(struct Pos pos);
+	void Shiftx(int x=0);
+	void Shifty(int y=0);
+	void AdjustSize(int h, int x);
+	int Gety();
+	int Getx();
+};
+
 #define NUM_STATS 7
 #define NUM_TALENTS 48
 #define NUM_STR_TALENTS 7
@@ -18,11 +43,7 @@
 #define SIZE_TALENT_MENU_W 24
 #define SIZE_SIZE_MENU_H 9
 #define SIZE_SIZE_MENU_W 9
-
-struct Pos {
-	int y;
-	int x;
-};
+#define STAT_MARGIN_Y 4
 
 int rand_num(int min, int max);
 char GetUserInp(int argn, ...);
@@ -68,47 +89,97 @@ public:
 	//void PrintTalentList(int stat);
 };
 
-#define MAX_WIND_HEIGHT 100
-
-class Cwin {
-private:
-	struct Pos pos;
-	struct Pos size;
-	void AdjustHeight(int h);
-	void AdjustWidth(int w);
-	
-public:
-	Cwin();
-	Cwin(int h, int w, int y, int x);
-	~Cwin();
-	void Print();
-	void Moveto(int y, int x);
-	void Shiftx(int x=0);
-	void Shifty(int y=0);
-	void AdjustSize(int h, int x);
-	int Gety();
-	int Getx();
-};
-
 class PlayerCharacter {
 private:
-	struct Pos pos;
-	int stats[NUM_STATS];
-	int talent_points[NUM_STATS];
+	int stat[NUM_STATS];
+	int talent_point[NUM_STATS];
 	int talents_pointed[NUM_STATS][NUM_TALENTS];
 	int level;
 	Cwin* stat_win[NUM_STATS];
-	Cwin* talent_win[NUM_STATS];
+	Cwin* talent_win;
 
 public:
 	PlayerCharacter();
 	~PlayerCharacter();
 	void Levelup();
 	void GenerateTalentPoints();
-	void IncreaseStat(int stat);
-	void SetPos(struct Pos new_pos);
-	void PrintCurrentLevel();
+	void SetStat(int stat, int n);
+	int GetLevel();
+	int GetStat(int i);
+	int GetTalentPoint(int i);
 };
+
+Cwin::Cwin() {
+	pos = { 0 };
+	size = { 5, 5 };
+}
+
+Cwin::Cwin(int h, int w, int y, int x) {
+	pos = { y, x };
+	size = { h, w };
+}
+
+Cwin::~Cwin(){}
+
+
+void Cwin::AdjustHeight(int h) {
+	if( h < 2 ){
+		size.y = 2;
+		return;
+	}
+	size.y = h;
+}
+
+void Cwin::AdjustWidth(int w) {
+	if( w < 3 ){
+		size.x = 3;
+		return;
+	} else {
+		if( size.x % 2 == 0 ){
+			size.x = w + 1;
+			return;
+		}
+	}
+	size.x = w;
+}
+
+void Cwin::Print() {
+	for( int i=0; i<size.y; i++ ){
+		for( int j=0; j<size.x; j++ ){
+			if( ((j == 0) || (j == size.x - 1)) && (i != 0) )
+				mvaddch(pos.y + i, pos.x + j, '|');
+			else if( ((i == 0) || (i == size.y - 1)) && ((j != 0) && (j != size.x-1)) )
+				mvaddch(pos.y + i, pos.x + j, '_');
+			else
+				mvaddch(pos.y + i, pos.x + j, ' ');
+		}
+	}
+}
+
+void Cwin::Moveto(struct Pos new_pos) {
+	pos = new_pos;
+}
+
+void Cwin::Shiftx(int x) {
+	pos.x += x;
+}
+
+void Cwin::Shifty(int y) {
+	pos.y += y;
+}
+
+void Cwin::AdjustSize(int h, int w) {
+	AdjustWidth(w);
+	AdjustHeight(h);
+}
+
+int Cwin::Gety() {
+	return pos.y;
+}
+
+int Cwin::Getx() {
+	return pos.x;
+}
 
 const int NUM_TALENTS_IN_STAT[] = {NUM_STR_TALENTS, NUM_DEX_TALENTS, NUM_CON_TALENTS, NUM_INT_TALENTS, NUM_WIS_TALENTS, NUM_CHA_TALENTS};
 
@@ -122,6 +193,16 @@ const std::string STAT_NAMES[] = {
 	"LCK"
 };
 
+const std::string STAT_NAMES_LONG[] = {
+	"strength",
+	"dexterity",
+	"constitution",
+	"intelligence",
+	"wisdom",
+	"charisma",
+	"luck"
+};
+
 std::random_device rd;
 std::mt19937 RNGine(rd());
 int rand_num(int min, int max){
@@ -130,19 +211,18 @@ int rand_num(int min, int max){
 }
 
 char GetUserInp(int argn, ...){
-	char user_inp;
+	char userInp;
 	while(true) {
-		user_inp = getch();
+		userInp = getch();
 		va_list args;
 		va_start(args, argn);
 		for( int i=0; i<argn; i++ ){
-			if( user_inp == va_arg(args, int) ){
+			if( userInp == va_arg(args, int) ){
 				clear();
 				va_end(args);
-				return user_inp;
+				return userInp;
 			}
 		}
-		mvprintw(rand_num(1, 40), rand_num(1, 80), "bad input, try again");
 	}
 }
 
@@ -205,86 +285,11 @@ void TalentTree::AddTalent(int stat, std::string name, std::string desc){
 	stt[stat]->AddTalent(name, desc);
 }
 
-Cwin::Cwin() {
-	pos = { 0 };
-	size = { 5, 5 };
-}
-
-Cwin::Cwin(int h, int w, int y, int x) {
-	pos = { y, x };
-	size = { h, w };
-}
-
-Cwin::~Cwin(){}
-
-
-void Cwin::AdjustHeight(int h) {
-	if( h < 2 ){
-		size.y = 2;
-		return;
-	}
-	size.y = h;
-}
-
-void Cwin::AdjustWidth(int w) {
-	if( w < 3 ){
-		size.x = 3;
-		return;
-	} else {
-		if( size.x % 2 == 0 ){
-			size.x = w + 1;
-			return;
-		}
-	}
-	size.x = w;
-}
-
-void Cwin::Print() {
-	for( int i=0; i<size.y; i++ ){
-		for( int j=0; j<size.x; j++ ){
-			if( (j == 0) || (j == size.x - 1) )
-				mvaddch(pos.y + i, pos.x + j, '|');
-			else if( (i == 0) || (i == size.y - 1) )
-				mvaddch(pos.y + i, pos.x + j, '_');
-			else
-				mvaddch(pos.y + i, pos.x + j, ' ');
-		}
-	}
-	mvaddch(pos.y, pos.x, ' ');
-	mvaddch(pos.y, size.x, ' ');
-}
-
-void Cwin::Moveto(int y, int x) {
-	pos = {y, x};
-}
-
-void Cwin::Shiftx(int x) {
-	pos.x += x;
-}
-
-void Cwin::Shifty(int y) {
-	pos.y += y;
-}
-
-void Cwin::AdjustSize(int h, int w) {
-	AdjustWidth(w);
-	AdjustHeight(h);
-}
-
-int Cwin::Gety() {
-	return pos.y;
-}
-
-int Cwin::Getx() {
-	return pos.x;
-}
-
 PlayerCharacter::PlayerCharacter()
 : level(0) {
-	pos = {1, 1};
 	for( int i=0; i<NUM_STATS; i++ ){
-		stats[i] = 0;
-		talent_points[i] = 0;
+		stat[i] = 0;
+		talent_point[i] = 0;
 	}
 }
 
@@ -299,45 +304,138 @@ void PlayerCharacter::Levelup(){
 void PlayerCharacter::GenerateTalentPoints(){
 	for( int i=0; i<NUM_STATS; i++ ){
 		int dice_thrown = 0;
-		if( stats[i] > 18 ){
+		if( stat[i] > 18 ){
 			dice_thrown = 6;
-		} else if( stats[i] > 16 ){
+		} else if( stat[i] > 16 ){
 			dice_thrown = 5;
-		} else if( stats[i] > 14 ){
+		} else if( stat[i] > 14 ){
 			dice_thrown = 4;
-		} else if( stats[i] > 12 ){
+		} else if( stat[i] > 12 ){
 			dice_thrown = 3;
-		} else if( stats[i] > 10 ){
+		} else if( stat[i] > 10 ){
 			dice_thrown = 2;
-		} else if( stats[i] > 7 ){
+	} else if( stat[i] > 7 ){
 			dice_thrown = 1;
 		}
 
 		for( int j=0; j<dice_thrown; j++ ){
-			talent_points[i] += rand_num(1, 4);
+			talent_point[i] += rand_num(1, 4);
 		}
 	}
 }
 
-void PlayerCharacter::IncreaseStat(int stat){
-	stats[stat] += 1;
+void PlayerCharacter::SetStat(int i, int n){
+	stat[i] += n;
 }
 
-void PlayerCharacter::SetPos(struct Pos new_pos){
-	pos = new_pos;
+int PlayerCharacter::GetLevel(){
+	return level;
 }
 
-void PlayerCharacter::PrintCurrentLevel(){
-	mvprintw(pos.y, pos.x + 4, "LEVEL: %i", level);
+int PlayerCharacter::GetStat(int i){
+	return stat[i];
 }
 
+int PlayerCharacter::GetTalentPoint(int i){
+	return talent_point[i];
+}
 
-void StateMachine(TalentTree tt, Cwin& cwin, PlayerCharacter& player, AppState& curstate, int& statselected, char& userInp);
+void PrintStatNames(struct Pos pos, int statselected){
+	struct Pos new_pos = pos;
+	for( int i=0; i<NUM_STATS; i++ ){
+		int col = i+1;
+		if( i == statselected ){
+			col += 7;
+		}
+		attron(COLOR_PAIR(col));
+		mvaddstr(new_pos.y, new_pos.x, STAT_NAMES[i].c_str());
+		attroff(COLOR_PAIR(col));
+		new_pos.y += STAT_MARGIN_Y;
+	}
+}
+
+void PrintStatDescription(struct Pos pos, int stat){
+	switch( stat ){
+	case 0:
+		mvprintw(pos.y, pos.x, "Strength determines a characters physical might.");
+		break;
+	
+	case 1:
+		mvprintw(pos.y, pos.x, "Dexterity determines a characters reflexes");
+		break;
+	
+	case 2:
+		mvprintw(pos.y, pos.x, "Constitution determines a characters vigor");
+		break;
+	
+	case 3:
+		mvprintw(pos.y, pos.x, "Intelligence determines a characters mental aptitude");
+		break;
+	
+	case 4:
+		mvprintw(pos.y, pos.x, "Wisdom determines a characters mental fortitude");
+		break;
+	
+	case 5:
+		mvprintw(pos.y, pos.x, "Charisma determines a characters charm and leadership");
+		break;
+
+	case 6:
+		mvprintw(pos.y, pos.x, "Luck determines a characters luck");
+		break;
+
+	default:
+		break;
+	}
+}
+
+void PrintCurrentLevel(PlayerCharacter player, struct Pos pos){
+	mvprintw(pos.y, pos.x, "LEVEL: %i", player.GetLevel());
+}
+
+void PrintCurrentStats(Cwin* statwin, PlayerCharacter player, struct Pos pos, int statselected){
+	int statx = 0;
+	struct Pos new_pos = pos;
+	new_pos.x += 3;
+	for( int i=0; i<NUM_STATS; i++ ){
+		statwin->Moveto({new_pos.y, pos.x});
+		statwin->Print();
+
+		if( player.GetStat(i) > 9 )
+			statx = -1;
+		else
+			statx = 0;
+
+		if( i == statselected ){
+			attron(COLOR_PAIR(14));
+			mvprintw(new_pos.y + 2, new_pos.x + statx, "%i", player.GetStat(i));
+			attroff(COLOR_PAIR(14));
+		} else
+			mvprintw(new_pos.y + 2, new_pos.x + statx, "%i", player.GetStat(i));
+
+		new_pos.y += STAT_MARGIN_Y;
+	}
+}
+
+void PrintAvailableTalentPoints(PlayerCharacter player, struct Pos pos){
+	struct Pos new_pos = pos;
+	new_pos.x += 0;
+	new_pos.y += 1;
+	for( int i=0; i<NUM_STATS; i++ ){
+		mvprintw(new_pos.y, new_pos.x, "talent points: %i", player.GetTalentPoint(i));
+		new_pos.y += STAT_MARGIN_Y;
+	}
+}
+
+void StateMachine(TalentTree tt, Cwin* cwin[3], PlayerCharacter& player, AppState& curstate, int& statselected, char& userInp, struct Pos tooltip_pos);
 void InitTalents(TalentTree& tt);
 
 void initialize(){
-	initscr(); cbreak(); noecho();
-	keypad(stdscr, TRUE);
+	initscr();
+	start_color();
+	cbreak();
+	noecho();
+	curs_set(0);
 }
 
 int deinitialize(){
@@ -347,21 +445,42 @@ int deinitialize(){
 
 int main(){
 	initialize();
+	init_pair(1, COLOR_RED, COLOR_BLACK);
+	init_pair(2, COLOR_GREEN, COLOR_BLACK);
+	init_pair(3, COLOR_YELLOW, COLOR_BLACK);
+	init_pair(4, COLOR_CYAN, COLOR_BLACK);
+	init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
+	init_pair(6, COLOR_YELLOW, COLOR_BLACK);
+	init_pair(7, COLOR_WHITE, COLOR_BLACK);
+	init_pair(8, COLOR_BLACK, COLOR_RED);
+	init_pair(9, COLOR_BLACK, COLOR_GREEN);
+	init_pair(10, COLOR_BLACK, COLOR_YELLOW);
+	init_pair(11, COLOR_BLACK, COLOR_CYAN);
+	init_pair(12, COLOR_BLACK, COLOR_MAGENTA);
+	init_pair(13, COLOR_BLACK, COLOR_YELLOW);
+	init_pair(14, COLOR_BLACK, COLOR_WHITE);
+
 	enum AppState curstate = STATE_STATS;
 	int statselected = 0;
 	char userInp = '\0';
 	TalentTree tt;
-	Cwin cwin(40, 81, 1, 1);
+
+	struct Pos screensize = { 0 };
+	getmaxyx(stdscr, screensize.y, screensize.x);
+	screensize = {screensize.y-2, screensize.x-2};
+	Cwin* cwin[3];
+	cwin[0] = new Cwin(screensize.y/2, screensize.x, 1, 1);
+	cwin[1] = new Cwin(4, 6, 7, 5);
+	cwin[2] = new Cwin(30, 5, 20, 3);
+	struct Pos tooltip_pos = { screensize.y/2-1, screensize.x/4};
 
 	while( curstate != STATE_EXIT ){
 		clear();
-		struct Pos player_origin = { 4, 4 };
 		PlayerCharacter player; 
-		player.SetPos(player_origin);
 		curstate = STATE_STATS;
 		
 		while( true ){
-			StateMachine(tt, cwin, player, curstate, statselected, userInp);
+			StateMachine(tt, cwin, player, curstate, statselected, userInp, tooltip_pos);
 			if( (curstate == STATE_RESET) || (curstate == STATE_EXIT) )
 				break;
 		}
@@ -371,14 +490,19 @@ int main(){
 	return deinitialize();
 }
 
-void StateMachine(TalentTree tt, Cwin& cwin, PlayerCharacter& player, AppState& curstate, int& statselected, char& userInp){
+//i1
+void StateMachine(TalentTree tt, Cwin* cwin[3], PlayerCharacter& player, AppState& curstate, int& statselected, char& userInp, struct Pos tooltip_pos){
+	struct Pos levelpos = { 1, 3 };
+	struct Pos statpos = { 3, 5 };
+	cwin[0]->Print();
 	switch( curstate ){
 	case STATE_STATS:
-		cwin.Print();
-		//player.IncreaseStat(int(userInp) - int('0') - 1);
-		player.PrintCurrentLevel();
-		PrintLevelupPrompt(20, 3);
-		userInp = GetUserInp(10, '1', '2', '3', '4', '5', '6', 'q', 'L', 'R', 't');
+		PrintCurrentLevel(player, levelpos);
+		PrintCurrentStats(cwin[1], player, statpos, statselected);
+		PrintStatNames(statpos, -1);
+		PrintStatDescription(tooltip_pos, statselected);
+
+		userInp = GetUserInp(10, 'h', 'j', 'k', 'l', 'q', 'L', 'R', 't');
 		if( userInp == 'q' )
 			curstate = STATE_EXIT;
 		else if( userInp == 'R' )
@@ -389,20 +513,37 @@ void StateMachine(TalentTree tt, Cwin& cwin, PlayerCharacter& player, AppState& 
 			clear();
 			refresh();
 			curstate = STATE_TALENTS;
-		}
-		break;
-
-	case STATE_TALENTS:
-		player.PrintCurrentLevel();
-		userInp = GetUserInp(3, 'h', 'l', 'b');
-		if( userInp == 'b' )
-			curstate = STATE_STATS;
-		else if( userInp == 'h' ){
+		} else if( userInp == 'k' ){
 			if( statselected == 0 )
 				statselected = NUM_STATS - 1;
 			else
 				statselected--;
+		} else if( userInp == 'j' ){
+			if( statselected == NUM_STATS - 1 )
+				statselected = 0;
+			else
+				statselected++;
+		} else if( userInp == 'h' ){
+			player.SetStat(statselected, -1);
 		} else if( userInp == 'l' ){
+			player.SetStat(statselected, 1);
+		}
+		break;
+//i1.1
+	case STATE_TALENTS:
+		PrintCurrentLevel(player, levelpos);
+		PrintStatNames(statpos, statselected);
+		PrintAvailableTalentPoints(player, statpos);
+
+		userInp = GetUserInp(3, 'j', 'k', 'b');
+		if( userInp == 'b' )
+			curstate = STATE_STATS;
+		else if( userInp == 'k' ){
+			if( statselected == 0 )
+				statselected = NUM_STATS - 1;
+			else
+				statselected--;
+		} else if( userInp == 'j' ){
 			if( statselected == NUM_STATS - 1 )
 				statselected = 0;
 			else
@@ -413,16 +554,6 @@ void StateMachine(TalentTree tt, Cwin& cwin, PlayerCharacter& player, AppState& 
 	default:
 		break;
 	}
-}
-
-void PrintLevelupPrompt(int y, int x){
-	int xx = x;
-	mvprintw(y, x, "Select a stat that you would like to upgrade [1-6]");
-	for( int i=0; i<NUM_STATS; i++ ){
-		mvprintw(y+1, xx, "%i = %s", i + 1, STAT_NAMES[i].c_str());
-		xx += 9;
-	}
-	mvprintw(y + 3, x, "press 'r' to reset and 'q' to quit");
 }
 
 void InitTalents(TalentTree& tt){
