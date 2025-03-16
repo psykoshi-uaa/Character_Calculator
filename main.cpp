@@ -53,10 +53,10 @@ int main(){
 	getmaxyx(stdscr, screensize.y, screensize.x);
 	screensize = {screensize.y-2, screensize.x-2};
 	Cwin* cwin[3];
-	cwin[0] = new Cwin(screensize.y/2, screensize.x, 1, 1);
+	cwin[0] = new Cwin(screensize.y, screensize.x, 1, 1);
 	cwin[1] = new Cwin(4, 6, 7, 5);
 	cwin[2] = new Cwin(30, 5, 20, 3);
-	struct Pos tooltip_pos = { screensize.y/2-1, screensize.x/4};
+	struct Pos tooltip_pos = { screensize.y-1, screensize.x/4};
 
 	while( curstate != STATE_EXIT ){
 		clear();
