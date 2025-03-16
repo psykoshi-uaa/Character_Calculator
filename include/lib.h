@@ -18,17 +18,19 @@
 #define SIZE_SIZE_MENU_W 9
 #define STAT_MARGIN_Y 4
 #define DESC_MARGIN_Y 1
+#define TALENT_DICE_BRACKETS 6
 
 extern const int NUM_TALENTS_IN_STAT[NUM_STATS];
 extern const std::string STAT_NAMES[NUM_STATS];
 extern const std::string STAT_NAMES_LONG[NUM_STATS];
+extern const std::string TALENT_DICE[TALENT_DICE_BRACKETS];
 
 int rand_num(int min, int max);
 char GetUserInp(int argn, ...);
 void PrintLevelupPrompt(int y, int x);
 
-enum AppState { STATE_STATS, STATE_TALENTS, STATE_RESET, STATE_EXIT };
-enum StatState { STATE_STR, STATE_DEX, STATE_CON, STATE_INT, STATE_WIS, STATE_CHA, STATE_LCK };
+enum AppState { STATE_CHAR_CREATION, STATE_STATS, STATE_BUY_STAT, STATE_TALENTS, STATE_LEVELUP, STATE_RESET, STATE_EXIT };
+//enum StatState { STATE_STR, STATE_DEX, STATE_CON, STATE_INT, STATE_WIS, STATE_CHA, STATE_LCK };
 
 class Talent {
 private:

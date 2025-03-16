@@ -15,6 +15,15 @@ const std::string STAT_NAMES[] = {
 	"LCK"
 };
 
+const std::string TALENT_DICE[] = {
+	"Too Low",
+	"1D6",
+	"1D8",
+	"1D10",
+	"1D12",
+	"2D8"
+};
+
 const std::string STAT_NAMES_LONG[] = {
 	"strength",
 	"dexterity",

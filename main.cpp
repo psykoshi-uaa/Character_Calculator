@@ -11,6 +11,8 @@
 void StateMachine(TalentTree* tt, Cwin* cwin[3], PlayerCharacter& player, AppState& curstate, int* selector, char& userInp, struct Pos tooltip_pos);
 void IncrementInt(int& i, int m);
 void DecrementInt(int& i, int m);
+void IncrementIntLoop(int& i, int m);
+void DecrementIntLoop(int& i, int m);
 TalentTree* InitTalents();
 
 void initialize(){
@@ -86,22 +88,69 @@ void StateMachine(TalentTree* tt, Cwin* cwin[3], PlayerCharacter& player, AppSta
 	switch( curstate ){
 	case STATE_STATS:
 		PrintCurrentLevel(player, levelpos);
-		PrintCurrentStats(cwin[1], player, statpos, selector[0]);
-		PrintStatNames(statpos, selector);
-		PrintStatDescription(tooltip_pos, selector[0]);
+		PrintCurrentStats(cwin[1], player, statpos, -1);
+		PrintStatNames(statpos, selector, STAT_MARGIN_Y);
+		PrintAvailableTalentPoints(player, {statpos.y+2, statpos.x+7});
+		PrintStatTalents(tt, player, talentpos, selector);
+		if( selector[1] == 1 )
+			PrintStatTalentsDesc(tt, tooltip_pos, selector);
+		else
+			PrintStatDescription(tooltip_pos, selector[0]);
 
-		userInp = GetUserInp(10, 'h', 'j', 'k', 'l', 'q', 'L', 'R', 't');
-		if( userInp == 'q' )
+		userInp = GetUserInp(10, 'h', 'j', 'k', 'l', 'q', 'L', 'R', 'e', 'b', 'p');
+		if( userInp == 'q' ){
 			curstate = STATE_EXIT;
-		else if( userInp == 'R' )
+		} else if( userInp == 'l'){
+			if( selector[1] == 0 ){
+				selector[2] = 0;
+			}
+			selector[1] = 1;
+			IncrementInt(selector[1], 1);
+		} else if( userInp == 'h'){
+			if( selector[1] == 1 ){
+				selector[2] = -1;
+			}
+			DecrementInt(selector[1], 0);
+
+		} else if( userInp == 'R' ){
 			curstate = STATE_RESET;
-		else if( userInp == 'L' )
-			//curstate = STATE_LEVELUP;
+		} else if( userInp == 'L' ){
+			selector[0] = 0;
+			curstate = STATE_LEVELUP;
+		} else if( userInp == 'p' ){
+			selector[0] = 0;
+			player.SetPotentialStats();
+			curstate = STATE_BUY_STAT;
+
+		} else if( userInp == 'k' && (selector[1] == 0) ){
+			if( selector[0] == 0 )
+				selector[0] = NUM_STATS - 1;
+			else
+				selector[0]--;
+		} else if( (userInp == 'j') && (selector[1] == 0) ){
+			if( selector[0] == NUM_STATS - 1 )
+				selector[0] = 0;
+			else
+				selector[0]++;
+
+		} else if( userInp == 'k' && (selector[1] == 1) ){
+			DecrementIntLoop(selector[2], num_talents_in_stat);
+		} else if( (userInp == 'j') && (selector[1] == 1) ){
+			IncrementIntLoop(selector[2], num_talents_in_stat);
+		}
+		break;
+
+//i1.1
+	case STATE_LEVELUP:
+		PrintCurrentLevel(player, levelpos);
+		PrintLevelUp(player, statpos, selector);		//magic number
+		PrintPotentialTalentPoints(player, statpos, 1);
+		userInp = GetUserInp(5, 'h', 'j', 'k', 'l', 'L');
+		if( userInp == 'L' ){
+			curstate = STATE_STATS;
+			selector[1] = 0;
 			player.Levelup();
-		else if( userInp == 't' ){
-			clear();
-			refresh();
-			curstate = STATE_TALENTS;
+			player.ConvertPotentialTalentPoints();
 		} else if( userInp == 'k' ){
 			if( selector[0] == 0 )
 				selector[0] = NUM_STATS - 1;
@@ -112,46 +161,37 @@ void StateMachine(TalentTree* tt, Cwin* cwin[3], PlayerCharacter& player, AppSta
 				selector[0] = 0;
 			else
 				selector[0]++;
+		}else if( userInp == 'l' ){
+			player.AddPotentialTalentPoint(selector);
 		} else if( userInp == 'h' ){
-			player.SetStat(selector[0], -1);
-		} else if( userInp == 'l' ){
-			player.SetStat(selector[0], 1);
+			player.RemovePotentialTalentPoint(selector);
 		}
 		break;
-//i1.1
-	case STATE_TALENTS:
+
+//i1.2
+	case STATE_BUY_STAT:
 		PrintCurrentLevel(player, levelpos);
-		PrintStatNames(statpos, selector);
-		PrintAvailableTalentPoints(player, statpos);
-		PrintStatTalents(tt, player, talentpos, selector);
-		if( selector[1] == 1 )
-			PrintStatTalentsDesc(tt, tooltip_pos, selector);
-
-		userInp = GetUserInp(5, 'h', 'j', 'k', 'l', 'b');
-
-		if( userInp == 'b' ){
+		PrintStatBuy(player, statpos, selector);		//magic number
+		PrintPotentialStats(player, statpos, 1);
+		userInp = GetUserInp(5, 'h', 'j', 'k', 'l', 'L');
+		if( userInp == 'L' ){
 			curstate = STATE_STATS;
 			selector[1] = 0;
-
-		} else if( (userInp == 'k') && (selector[1] == 0) )
-			DecrementInt(selector[0], NUM_STATS - 1);
-		else if( (userInp == 'j') && (selector[1] == 0) )
-			IncrementInt(selector[0], NUM_STATS - 1);
-
-		else if( (userInp == 'k') && (selector[1] == 1) )
-			DecrementInt(selector[2], num_talents_in_stat);
-		else if( (userInp == 'j') && (selector[1] == 1) )
-			IncrementInt(selector[2], num_talents_in_stat);
-
-		else if( userInp == 'h' ){
-			if( selector[1] > 0 )
-				selector[1]--;
-				selector[2] = -1;
-		} else if( userInp == 'l' ){
-			if( selector[1] < 1 )
-				selector[1]++;
-				selector[2] = 0;
-				
+			player.ConvertPotentialStats();
+		} else if( userInp == 'k' ){
+			if( selector[0] == 0 )
+				selector[0] = NUM_STATS - 1;
+			else
+				selector[0]--;
+		} else if( userInp == 'j' ){
+			if( selector[0] == NUM_STATS - 1 )
+				selector[0] = 0;
+			else
+				selector[0]++;
+		}else if( userInp == 'l' ){
+			player.AddPotentialStat(selector[0]);
+		} else if( userInp == 'h' ){
+			player.RemovePotentialStat(selector[0]);
 		}
 		break;
 
@@ -161,6 +201,11 @@ void StateMachine(TalentTree* tt, Cwin* cwin[3], PlayerCharacter& player, AppSta
 }
 
 void IncrementInt(int& i, int m){
+	if( i < m )
+		i++;
+}
+
+void IncrementIntLoop(int& i, int m){
 	if( i == m )
 		i = 0;
 	else
@@ -168,6 +213,11 @@ void IncrementInt(int& i, int m){
 }
 
 void DecrementInt(int& i, int m){
+	if( i > m )
+		i--;
+}
+
+void DecrementIntLoop(int& i, int m){
 	if( i == 0 )
 		i = m;
 	else
