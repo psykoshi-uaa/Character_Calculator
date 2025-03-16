@@ -171,7 +171,8 @@ void PrintStatBuy(PlayerCharacter player, struct Pos pos, int* s){
 	cwin->Print();
 	cwin2->Print();
 	mvprintw(pos.y + 1, pos.x + 6, "BUY STATS");
-	mvprintw(pos.y + 3, pos.x + 3, "Stats:");
+	mvprintw(pos.y + 4, pos.x + 2, "Stats:");
+	mvprintw(pos.y + 4, pos.x + 12, "Cost:");
 	PrintStatNames({pos.y + 5, pos.x + 2}, s, 1);
 }
 
@@ -181,6 +182,41 @@ void PrintPotentialStats(PlayerCharacter player, struct Pos pos, int m){
 	new_pos.y += 1;
 	for( int i=0; i<NUM_STATS; i++ ){
 		mvprintw(new_pos.y + 4, new_pos.x + 6, "%i", player.GetPotentialStat(i));
+		mvprintw(new_pos.y + 4, new_pos.x + 12, "%i", player.GetPotentialStatCost(i));
 		new_pos.y += m;
+	}
+}
+
+void PrintButton(int i, int* s, struct Pos pos, struct Pos size, std::string title){
+	int col = 0;
+	Cwin* cwin = new Cwin(size.y, size.x, pos.y, pos.x);
+	cwin->Print();
+	if( s[0] == i ){
+		col = 14;
+	}
+	attron(COLOR_PAIR(col));
+	mvprintw(pos.y, pos.x, title.c_str());
+	attroff(COLOR_PAIR(col));
+}
+
+void PrintTalentSpent(PlayerCharacter player, struct Pos pos, int* s){
+	struct Pos new_pos = pos;
+	for( int i=0; i<NUM_TALENTS_IN_STAT[s[0]]; i++ ){
+		int cost = 1;
+		if( player.GetTalentSpent(s, i) >= 14 ){
+			cost = 6;
+		} else if( player.GetTalentSpent(s, i) >= 10 ){
+			cost = 5;
+		} else if( player.GetTalentSpent(s, i) >= 8 ){
+			cost = 4;
+		} else if( player.GetTalentSpent(s, i) >= 5 ){
+			cost = 3;
+		} else if( player.GetTalentSpent(s, i) >= 3 ){
+			cost = 2;
+		}
+
+		mvprintw(new_pos.y, new_pos.x, "[%i]", player.GetTalentSpent(s, i));
+		mvprintw(new_pos.y, new_pos.x + 22, "%i", cost);
+		new_pos.y += 2;
 	}
 }

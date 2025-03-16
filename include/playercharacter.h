@@ -17,6 +17,7 @@ private:
 	int potential_stat[NUM_STATS];
 	int talent_point[NUM_STATS];
 	int potential_talent_point[NUM_STATS];
+	int talent_spent[NUM_STATS][MAX_TALENTS];
 	Talent* talent;
 	Cwin* stat_win[NUM_STATS];
 	Cwin* talent_win;
@@ -26,6 +27,7 @@ public:
 	PlayerCharacter(std::string n, TalentTree* t);
 	~PlayerCharacter();
 	void Levelup();
+	void SetPotentialTalentPoints();
 	void AddPotentialTalentPoint(int* s);
 	void RemovePotentialTalentPoint(int* s);
 	void ConvertPotentialTalentPoints();
@@ -35,11 +37,15 @@ public:
 	void AddPotentialStat(int i);
 	void RemovePotentialStat(int i);
 	void ConvertPotentialStats();
+	void AddTalentSpent(int* s);
+	void RemoveTalentSpent(int* s);
 	int GetLevel();
 	int GetStat(int i);
 	int GetStatPoints();
 	int GetPotentialStat(int i);
+	int GetPotentialStatCost(int i);
 	int GetTalentPoint(int i);
 	int GetPotentialTalentPoint(int i);
 	int GetTalentLevel(int s, std::string n);
+	int GetTalentSpent(int* s, int i);
 };

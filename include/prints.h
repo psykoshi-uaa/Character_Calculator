@@ -17,3 +17,5 @@ void PrintStatTalentsDesc(TalentTree* tt, struct Pos pos, int* s);
 void PrintLevelUp(PlayerCharacter player, struct Pos pos, int* s);
 void PrintStatBuy(PlayerCharacter player, struct Pos pos, int* s);
 void PrintPotentialStats(PlayerCharacter player, struct Pos pos, int m);
+void PrintButton(int i, int* s, struct Pos pos, struct Pos size, std::string title);
+void PrintTalentSpent(PlayerCharacter player, struct Pos pos, int* s);
