@@ -28,6 +28,9 @@ PlayerCharacter::PlayerCharacter(std::string n, TalentTree* t)
 		talent_point[i] = 0;
 		potential_talent_point[i] = 1;
 		potential_talent_point[NUM_STATS-1] = 0;
+		for( int j=0; j<MAX_TALENTS; j++ ){
+			talent_spent[i][j] = 0;
+		}
 	}
 }
 
