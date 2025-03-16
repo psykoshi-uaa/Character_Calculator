@@ -56,7 +56,7 @@ int main(){
 	cwin[0] = new Cwin(screensize.y/2, screensize.x, 1, 1);
 	cwin[1] = new Cwin(4, 6, 7, 5);
 	cwin[2] = new Cwin(30, 5, 20, 3);
-	struct Pos tooltip_pos = { screensize.y/2-1, screensize.x - 55};
+	struct Pos tooltip_pos = { screensize.y/2-1, screensize.x/4};
 
 	while( curstate != STATE_EXIT ){
 		clear();
@@ -77,7 +77,7 @@ int main(){
 //i1
 void StateMachine(TalentTree* tt, Cwin* cwin[3], PlayerCharacter& player, AppState& curstate, int* selector, char& userInp, struct Pos tooltip_pos){
 	struct Pos levelpos = { 1, 3 };
-	struct Pos statpos = { 3, 5 };
+	struct Pos statpos = { 3, 7 };
 	struct Pos talentpos = { 4, 27 };
 	struct Pos descpos = { 4, 50 };
 	int num_talents_in_stat = NUM_TALENTS_IN_STAT[selector[0]] - 1;
@@ -87,7 +87,7 @@ void StateMachine(TalentTree* tt, Cwin* cwin[3], PlayerCharacter& player, AppSta
 	case STATE_STATS:
 		PrintCurrentLevel(player, levelpos);
 		PrintCurrentStats(cwin[1], player, statpos, selector[0]);
-		PrintStatNames(statpos, -1);
+		PrintStatNames(statpos, selector);
 		PrintStatDescription(tooltip_pos, selector[0]);
 
 		userInp = GetUserInp(10, 'h', 'j', 'k', 'l', 'q', 'L', 'R', 't');
@@ -96,6 +96,7 @@ void StateMachine(TalentTree* tt, Cwin* cwin[3], PlayerCharacter& player, AppSta
 		else if( userInp == 'R' )
 			curstate = STATE_RESET;
 		else if( userInp == 'L' )
+			//curstate = STATE_LEVELUP;
 			player.Levelup();
 		else if( userInp == 't' ){
 			clear();
@@ -120,18 +121,19 @@ void StateMachine(TalentTree* tt, Cwin* cwin[3], PlayerCharacter& player, AppSta
 //i1.1
 	case STATE_TALENTS:
 		PrintCurrentLevel(player, levelpos);
-		PrintStatNames(statpos, selector[0]);
+		PrintStatNames(statpos, selector);
 		PrintAvailableTalentPoints(player, statpos);
-		PrintStatTalents(tt, player, talentpos, selector[0], selector[2]);
+		PrintStatTalents(tt, player, talentpos, selector);
 		if( selector[1] == 1 )
-			PrintStatTalentsDesc(tt, descpos, selector[0], selector[2]);
+			PrintStatTalentsDesc(tt, tooltip_pos, selector);
 
 		userInp = GetUserInp(5, 'h', 'j', 'k', 'l', 'b');
 
-		if( userInp == 'b' )
+		if( userInp == 'b' ){
 			curstate = STATE_STATS;
+			selector[1] = 0;
 
-		else if( (userInp == 'k') && (selector[1] == 0) )
+		} else if( (userInp == 'k') && (selector[1] == 0) )
 			DecrementInt(selector[0], NUM_STATS - 1);
 		else if( (userInp == 'j') && (selector[1] == 0) )
 			IncrementInt(selector[0], NUM_STATS - 1);

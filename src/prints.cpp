@@ -5,12 +5,13 @@
 #include "../include/playercharacter.h"
 
 
-void PrintStatNames(struct Pos pos, int s){
+void PrintStatNames(struct Pos pos, int* s){
 	struct Pos new_pos = pos;
 	for( int i=0; i<NUM_STATS; i++ ){
 		int col = i+1;
-		if( i == s ){
+		if( (i == s[0]) && (s[1] == 0) ){
 			col += 7;
+			mvprintw(new_pos.y, pos.x - 4, "-->");
 		}
 		attron(COLOR_PAIR(col));
 		mvaddstr(new_pos.y, new_pos.x, STAT_NAMES[i].c_str());
@@ -92,20 +93,28 @@ void PrintAvailableTalentPoints(PlayerCharacter player, struct Pos pos){
 	}
 }
 
-void PrintStatTalents(TalentTree* tt, PlayerCharacter player, struct Pos pos, int s, int t){
+void PrintStatTalents(TalentTree* tt, PlayerCharacter player, struct Pos pos, int* s){
 	struct Pos new_pos = pos;
-	for( int i=0; i<NUM_TALENTS_IN_STAT[s]; i++ ){
-		mvprintw(new_pos.y + i, pos.x + 4, "%s", tt->GetTalentName(s, i).c_str());
-		if( t == i ){
+	for( int i=0; i<NUM_TALENTS_IN_STAT[s[0]]; i++ ){
+		mvprintw(new_pos.y + i, pos.x + 4, "%s", tt->GetTalentName(s[0], i).c_str());
+		if( (s[2] == i) && (s[1] == 1) ){
+			mvprintw(new_pos.y+i, pos.x, "-->");
 			attron(COLOR_PAIR(14));
-			mvprintw(new_pos.y + i, pos.x + 4, "%s", tt->GetTalentName(s, i).c_str());
+			mvprintw(new_pos.y+i, pos.x + 4, "%s", tt->GetTalentName(s[0], i).c_str());
 			attroff(COLOR_PAIR(14));
 		} else
-			mvprintw(new_pos.y + i, pos.x + 4, "%s", tt->GetTalentName(s, i).c_str());
-		new_pos.y += 1;
+			mvprintw(new_pos.y+i, pos.x + 4, "%s", tt->GetTalentName(s[0], i).c_str());
+		new_pos.y += DESC_MARGIN_Y;
 	}
 }
 
-void PrintStatTalentsDesc(TalentTree* tt, struct Pos pos, int s, int t){
-	mvprintw(pos.y, pos.x, "%s", tt->GetTalentDesc(s, t).c_str());
+void PrintStatTalentsDesc(TalentTree* tt, struct Pos pos, int* s){
+	mvprintw(pos.y, pos.x, "%s", tt->GetTalentDesc(s[0], s[2]).c_str());
+	/*
+	struct Pos new_pos = pos;
+	for( int i=0; i<NUM_TALENTS_IN_STAT[s[0]]; i++ ){
+		mvprintw(new_pos.y + i, pos.x, "%s", tt->GetTalentDesc(s[0], i).c_str());
+		new_pos.y += DESC_MARGIN_Y;
+	}
+	*/
 }

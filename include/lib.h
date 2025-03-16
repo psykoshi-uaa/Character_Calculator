@@ -17,6 +17,7 @@
 #define SIZE_SIZE_MENU_H 9
 #define SIZE_SIZE_MENU_W 9
 #define STAT_MARGIN_Y 4
+#define DESC_MARGIN_Y 1
 
 extern const int NUM_TALENTS_IN_STAT[NUM_STATS];
 extern const std::string STAT_NAMES[NUM_STATS];
