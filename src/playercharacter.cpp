@@ -68,11 +68,9 @@ void PlayerCharacter::RemovePotentialTalentPoint(int* s){
 
 void PlayerCharacter::ConvertPotentialTalentPoints(){
 	for( int i=0; i<NUM_STATS; i++ ){
-		talent_point[i] += potential_talent_point[i];
 		if( stat[i] < 8 )
 			potential_talent_point[i] = 0;
-		else
-			potential_talent_point[i] = 1;
+		talent_point[i] += potential_talent_point[i];
 	}
 }
 
@@ -96,7 +94,8 @@ void PlayerCharacter::GenerateTalentPoints(){
 }
 
 void PlayerCharacter::SetStat(int i, int n){
-	stat[i] += n;
+	if( stat[i] + n >= 0 )
+		stat[i] += n;
 }
 
 void PlayerCharacter::SetPotentialTalentPoints(){

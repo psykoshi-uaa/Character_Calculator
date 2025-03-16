@@ -220,3 +220,17 @@ void PrintTalentSpent(PlayerCharacter player, struct Pos pos, int* s){
 		new_pos.y += 2;
 	}
 }
+
+void PrintHelp(struct Pos pos, int w){
+	for( int i=0; i<3; i++ ){
+		for( int j=0; j<50; j++ ){
+			mvaddch(pos.y + i, pos.x + j, ' ');
+		}
+	}
+	mvprintw(pos.y, pos.x, "left [h]   down [j]   up [k]   right [l]");
+	mvprintw(pos.y+1, pos.x, "decrease [H]   increase [L]");
+	if( w == 0 )
+		mvprintw(pos.y+2, pos.x, "buy stat [B]   levelup [U]   quit [q]");
+	else
+		mvprintw(pos.y+2, pos.x, "accept [a]   cancel [c]");
+}
